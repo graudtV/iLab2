@@ -19,7 +19,7 @@
 
 template <class DataBase>
 class AbstractCache :
-	public AbstractDB <
+	public AbstractIDB <
 		typename DataBase::key_t,
 		typename DataBase::page_t >
 {
@@ -33,6 +33,8 @@ public:
 
 	page_t get_page(const key_t& key) const override
 		{ return get_temp_page(key); }
+	bool contains(const key_t& key) const override
+		{ return m_db.contains(key); }
 
 	/*  Выдает ссылку на объект прямо внутри кэша. Тем
 	 * самым избегается лишнее копирование

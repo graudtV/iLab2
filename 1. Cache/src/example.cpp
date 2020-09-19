@@ -46,22 +46,29 @@ int main()
 {
 	srand(time(NULL));
 
-	SimpleDB db;
+	EndlessDB db;
 	FileSystemDB fsdb;
 
-	DummyCache<SimpleDB> cached_db(db);
+	DummyCache<EndlessDB> cached_db(db);
 	DummyCache<FileSystemDB> cached_fsdb(fsdb);
-	RandomCache<SimpleDB> random_cache(db, 5);
+	RandomCache<EndlessDB> random_cache(db, 5);
 
 
-	LRUCache<SimpleDB> lru_cache(db, 5);
+	LRUCache<EndlessDB> lru_cache(db, 5);
 
-	cout << "RandomCache<SimpleDB>:\t"
-		<< test_cache<RandomCache<SimpleDB>>(10, 100, 100000) << endl;
-	cout << "LRUCache<SimpleDB>:\t"
-		<< test_cache<LRUCache<SimpleDB>>(10, 100, 100000) << endl;
+	cout << "RandomCache<EndlessDB>:\t"
+		<< test_cache<RandomCache<EndlessDB>>(10, 100, 100000) << endl;
+	cout << "LRUCache<EndlessDB>:\t"
+		<< test_cache<LRUCache<EndlessDB>>(10, 100, 100000) << endl;
 
-	BeladyCache<SimpleDB> belady(db, 10);
+	
+	SimpleDB<int, int> simple_db;
+	simple_db.insert_page(335, 448);
+	cout << simple_db.get_page(335) << endl;
+
+	
+
+	//BeladyCache<EndlessDB> belady(db, 10);
 
 	// cout << db.get_page(228) << endl;
 	// cout << cached_db.get_page(228) << endl;
