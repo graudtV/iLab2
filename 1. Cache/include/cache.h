@@ -17,8 +17,28 @@
 #include <unordered_map>
 #include <list>
 
+class CacheAnalitics {
+public:
+	CacheAnalitics() :
+		m_nhits(0), m_nlookups(0) {}
+
+	int nhits() const { return m_nhits; }
+	int nlookups() const { return m_nlookups; }
+	double hit_ratio() const
+		{ return (m_nlookups) ? (double(m_nhits) / m_nlookups) : 0.0; }
+
+protected:
+	void hit() const { ++m_nhits, ++m_nlookups; }
+	void miss() const { ++m_nlookups; }
+
+private:
+	mutable int m_nhits, m_nlookups;
+};
+
+
 template <class DataBase>
 class AbstractCache :
+	public CacheAnalitics,
 	public AbstractIDB <
 		typename DataBase::key_t,
 		typename DataBase::page_t >
@@ -29,12 +49,12 @@ public:
 	using database_t = DataBase;
 
 	AbstractCache(const DataBase& db, size_t cache_sz) :
-		m_db(db), m_cache_sz(cache_sz), m_nhits(0), m_nlookups(0) {}
+		m_db(db), m_cache_sz(cache_sz) {}
 
-	page_t get_page(const key_t& key) const override
-		{ return get_temp_page(key); }
 	bool contains(const key_t& key) const override
 		{ return m_db.contains(key); }
+	page_t get_page(const key_t& key) const override
+		{ return get_temp_page(key); }
 
 	/*  Выдает ссылку на объект прямо внутри кэша. Тем
 	 * самым избегается лишнее копирование
@@ -46,20 +66,10 @@ public:
 
 	size_t cache_sz() const { return m_cache_sz; }
 	const DataBase& db() const { return m_db; }
-	
-	int nhits() const { return m_nhits; }
-	int nlookups() const { return m_nlookups; }
-	double hit_ratio() const
-		{ return (m_nlookups) ? (double(m_nhits) / m_nlookups) : 0.0; }
 
 protected:
 	const DataBase& m_db;
 	size_t m_cache_sz;
-
-	mutable int m_nhits, m_nlookups;
-
-	void hit() const { ++m_nhits, ++m_nlookups; }
-	void miss() const { ++m_nlookups; }
 };
 
 
@@ -93,18 +103,18 @@ public:
 
 	RandomCache(const DataBase& db, size_t cache_sz) :
 		AbstractCache<DataBase>(db, cache_sz),
-		m_cache()
-		{ m_cache.reserve(cache_sz); }
+		m_hashtbl()
+		{ m_hashtbl.reserve(cache_sz); }
 
 	const page_t& get_temp_page(const key_t& key) const override;
-	bool is_cached(const key_t& key) const override { return m_cache.count(key); }
+	bool is_cached(const key_t& key) const override { return m_hashtbl.count(key); }
 
 private:
 	using Hashtable = std::unordered_map<key_t, page_t>;
-	mutable Hashtable m_cache;
+	mutable Hashtable m_hashtbl;
 
 	typename Hashtable::iterator
-		get_random_it(Hashtable& htable) const;
+		get_random_it(Hashtable& hashtbl) const;
 };
 
 
@@ -133,6 +143,47 @@ private:
 	mutable Hashtable m_hashtbl;
 };
 
+/* BeladyCache не наследуется от AbstractCache,
+ * т.к. функции get_page() и get_temp_page() отличаются для
+ * этих классов */
+template <class DataBase>
+class BeladyCache :
+	public CacheAnalitics
+{
+public:
+	using key_t = typename DataBase::key_t;
+	using page_t = typename DataBase::page_t;
+	using database_t = DataBase;
+
+	BeladyCache(const DataBase& db, size_t cache_sz) :
+		m_db(db), m_cache_sz(cache_sz) {}
+
+	bool contains(const key_t& key) const { return m_db.contains(key); }
+
+	template <class InputIt>
+	page_t get_page(const key_t& key,
+		InputIt prediction_from, InputIt prediction_to) const
+		{ return get_temp_page(key, prediction_from, prediction_to); }
+
+	/*  Выдает ссылку на объект прямо внутри кэша. Тем
+	 * самым избегается лишнее копирование
+	 *  Warning: Ссылка становится недействительной при
+	 * следующем обращении к get_page() или get_temp_page() ! */
+	template <class InputIt>
+	const page_t& get_temp_page(const key_t& key,
+		InputIt prediction_from, InputIt prediction_to) const;
+
+	bool is_cached(const key_t& key) const { return m_hashtbl.count(key); }
+	
+	size_t cache_sz() const { return m_cache_sz; }
+	const DataBase& db() const { return m_db; }
+
+protected:
+	const DataBase& m_db;
+	size_t m_cache_sz;
+
+	mutable std::unordered_map<key_t, page_t> m_hashtbl;
+};
 
 #include "cache_realization.h"
 

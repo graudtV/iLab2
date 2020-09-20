@@ -45,38 +45,33 @@ TestCacheResult test_cache
 int main()
 {
 	srand(time(NULL));
+	using Simple = SimpleDB<int, int>;
 
-	EndlessDB db;
-	FileSystemDB fsdb;
+	EndlessDB endless;
+	FileSystemDB filesystem;
+	Simple simple;
 
-	DummyCache<EndlessDB> cached_db(db);
-	DummyCache<FileSystemDB> cached_fsdb(fsdb);
-	RandomCache<EndlessDB> random_cache(db, 5);
+	DummyCache<EndlessDB> dummy_endless(endless);
+	DummyCache<FileSystemDB> dummy_filesystem(filesystem);
+	DummyCache<Simple> dummy_simple(simple);
 
+	RandomCache<EndlessDB> random_endless(endless, 5);
+	RandomCache<FileSystemDB> random_filesystem(filesystem, 5);
+	RandomCache<Simple> random_simple(simple, 5);
 
-	LRUCache<EndlessDB> lru_cache(db, 5);
+	LRUCache<EndlessDB> lru_endless(endless, 5);
+	LRUCache<FileSystemDB> lru_filesystem(filesystem, 5);
+	LRUCache<Simple> lru_simple(simple, 5);
+
+	BeladyCache<EndlessDB> belady_endless(endless, 5);
+	BeladyCache<FileSystemDB> belady_filesystem(filesystem, 5);
+	BeladyCache<Simple> belady_simple(simple, 5); 
 
 	cout << "RandomCache<EndlessDB>:\t"
 		<< test_cache<RandomCache<EndlessDB>>(10, 100, 100000) << endl;
 	cout << "LRUCache<EndlessDB>:\t"
 		<< test_cache<LRUCache<EndlessDB>>(10, 100, 100000) << endl;
 
-	
-	SimpleDB<int, int> simple_db;
-	simple_db.insert_page(335, 448);
-	cout << simple_db.get_page(335) << endl;
-
-	
-
-	//BeladyCache<EndlessDB> belady(db, 10);
-
-	// cout << db.get_page(228) << endl;
-	// cout << cached_db.get_page(228) << endl;
-
-	// const std::string& s1 = cached_fsdb.get_page("in");
-	// const std::string& s2 = cached_fsdb.get_temp_page("in2");
-	// cout << "'" << s1 << "'"<< endl;
-	// cout << "'" << s2 << "'"<< endl;
 
 	return 0;
 }

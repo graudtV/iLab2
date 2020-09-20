@@ -1,7 +1,7 @@
 .PHONY: all clean example run-example test
 CC = cc
 CFLAGS = -std=c++11 -lc++
-HEADERS = include/cache.h include/database.h
+HEADERS = include/cache.h include/cache_realization.h include/database.h
 
 all:
 example: bin/example

@@ -77,7 +77,11 @@ template <class Key, class Page>
 class AbstractIODB :
 	public AbstractIDB<Key, Page>,
 	public AbstractODB<Key, Page>
-{ };
+{
+public:
+	using key_t = Key;
+	using page_t = Page;
+};
 
 
 class EndlessDB :
@@ -169,7 +173,7 @@ SimpleDB<Key, Page>::get_page(const key_t& key) const
 	try {
 		return m_hashtbl.at(key);
 	}
-	catch (std::out_of_range& ) {
+	catch (std::out_of_range&) {
 		throw PageNotFound(key, "");
 	}
 }
