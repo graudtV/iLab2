@@ -10,19 +10,16 @@ run-example: bin/example
 clean:
 	rm -rf bin
 
-test: bin/test bin/test/test_lru bin/test/test_efficiency
-	bin/test/test_lru
-	bin/test/test_efficiency
+test: bin/test bin/test/test_efficiency
+	bin/test/test_efficiency 1000000 100 10
 
 bin/example: src/example.cpp $(HEADERS) bin
 	$(CC) $(CFLAGS) -o $@ $<
 
-bin/test/test_lru: test/test_lru.cpp $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $<
-bin/test/test_efficiency: test/test_efficiency.cpp $(HEADERS) test/graph.h test/graph_realization.h
+bin/test/test_efficiency: test/test_efficiency.cpp test/testing_facilities.h $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $<
 
 bin:
-	mkdir bin
-bin/test: bin
-	mkdir bin/test
+	mkdir -p bin
+bin/test:
+	mkdir -p bin/test

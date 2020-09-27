@@ -2,7 +2,8 @@
  * AbstractCache - общий интерфейс для всех кэшей
  * DummyCache - Хэш с 100% вероятностью промаха. Каждый раз обращается к базе данных
  * RandomCache - Выбрасывает случайную страницу
- * LRUCache - Least Recently Used
+ * LRUCache - Least Recently Used algorithm
+ * BeladyCache - Belady algorithm
  */
 
 #ifndef _CACHE_H_
@@ -21,11 +22,12 @@ class CacheAnalitics {
 public:
 	CacheAnalitics() :
 		m_nhits(0), m_nlookups(0) {}
+	~CacheAnalitics() = default;
 
 	int nhits() const { return m_nhits; }
 	int nlookups() const { return m_nlookups; }
 	double hit_ratio() const
-		{ return (m_nlookups) ? (double(m_nhits) / m_nlookups) : 0.0; }
+		{ return (m_nlookups) ? (static_cast<double>(m_nhits) / m_nlookups) : 0.0; }
 
 protected:
 	void hit() const { ++m_nhits, ++m_nlookups; }
@@ -50,6 +52,10 @@ public:
 
 	AbstractCache(const DataBase& db, size_t cache_sz) :
 		m_db(db), m_cache_sz(cache_sz) {}
+	virtual ~AbstractCache() = default;
+
+	AbstractCache(const AbstractCache& other) = delete;
+	AbstractCache& operator =(const AbstractCache& other) = delete;
 
 	bool contains(const key_t& key) const override
 		{ return m_db.contains(key); }
@@ -104,7 +110,7 @@ public:
 	RandomCache(const DataBase& db, size_t cache_sz) :
 		AbstractCache<DataBase>(db, cache_sz),
 		m_hashtbl()
-		{ m_hashtbl.reserve(cache_sz); }
+		{ assert(cache_sz > 0); m_hashtbl.reserve(cache_sz); }
 
 	const page_t& get_temp_page(const key_t& key) const override;
 	bool is_cached(const key_t& key) const override { return m_hashtbl.count(key); }
@@ -128,7 +134,7 @@ public:
 		AbstractCache<DataBase>(db, cache_sz),
 		m_lst(),
 		m_hashtbl()
-		{ m_hashtbl.reserve(cache_sz); }
+		{ assert(cache_sz > 0); m_hashtbl.reserve(cache_sz); }
 
 	const page_t& get_temp_page(const key_t& key) const override;
 	bool is_cached(const key_t& key) const override
@@ -156,7 +162,11 @@ public:
 	using database_t = DataBase;
 
 	BeladyCache(const DataBase& db, size_t cache_sz) :
-		m_db(db), m_cache_sz(cache_sz) {}
+		m_db(db), m_cache_sz(cache_sz) { assert(cache_sz > 0); }
+	virtual ~BeladyCache() = default;
+
+	BeladyCache(const BeladyCache& other) = delete;
+	BeladyCache& operator =(const BeladyCache& other) = delete;
 
 	bool contains(const key_t& key) const { return m_db.contains(key); }
 

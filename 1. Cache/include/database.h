@@ -2,7 +2,11 @@
  * AbstractIDB - Input Data Base (IDB) - интерфейс только на чтение
  * AbstractODB - Output Data Base (ODB) - интерфейс только на запись
  * AbstractIODB - Input-Output Data Base (IODB) - и на чтение, и на запись
- * EndlessDB - содержит бесконечно много различных страниц. Key - int, Page - std::string
+ * EndlessDB - содержит бесконечно много страниц-строк, каждая строка уникальна и
+ 				имеет вид "page <page_number>". Key - int, Page - std::string.
+ * QuickEndlessDB - содержит бесконечно много страниц типа int, все страницы
+ 				одинаковы и равны 0. Key - int, Page - int. Имеет самый быстрый
+ 				доступ к странице, благодаря чему лучше все подходит для тестирования кэшей
  * FileSystemDB - Key - имя файла (std::string), Page - его содержимое в виде std::string
  */
 
@@ -83,12 +87,20 @@ public:
 	using page_t = Page;
 };
 
-
 class EndlessDB :
 	public AbstractIDB<int, std::string>
 {
 public:
 	page_t get_page(const key_t& key) const override;
+	bool contains(const key_t& key) const override
+		{ return true; }
+};
+
+class QuickEndlessDB :
+	public AbstractIDB<int, int>
+{
+public:
+	page_t get_page(const key_t& key) const override { return 0; }
 	bool contains(const key_t& key) const override
 		{ return true; }
 };
