@@ -17,7 +17,6 @@ struct TestCacheResult {
 		(std::ostream& os, const TestCacheResult& res);
 };
 
-std::ostream&
 operator <<(std::ostream& os, const TestCacheResult& res)
 {
 	os << "hits = " << res.nhits
