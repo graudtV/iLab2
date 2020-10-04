@@ -1,5 +1,5 @@
 /* ./test_efficiency [OPTIONS] <nlookups> <ndifferent_queries> <cache_sz>
- * OPTIONS: -r, -t, -g (random, tree, graph queries) */
+ * OPTIONS: -r, -g (random, graph queries) */
 #define NDEBUG
 
 #include <iostream>
@@ -11,7 +11,7 @@
 
 namespace {
 
-std::ostream& operator <<(std::ostream& os, const TestResult& res)
+std::ostream& operator <<(std::ostream& os, const Cache::TestResult& res)
 {
 	os << std::fixed;
 	os	<< std::setw(10) << res.nhits
@@ -33,8 +33,12 @@ void run_all_tests(
 	typename std::vector<int>::const_iterator queries_from,
 	typename std::vector<int>::const_iterator queries_to)
 {
-	using DB = QuickEndlessDB;
-	DB db;
+	using Cache::test_cache;
+	using Cache::test_dummy_cache;
+	using Cache::test_belady_cache;
+	using DB_t = DB::QuickEndlessDB;
+
+	DB_t db;
 
 	using std::left;
 
@@ -47,15 +51,15 @@ void run_all_tests(
 		<< shift << "" << " HITS      LOOKUPS     HIT RATIO    TIME(sec)    SPEED(usec/query)\n";
 	std::cout
 		<< shift << left << "DummyCache"	<< ' '
-		<<  test_dummy_cache			(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_dummy_cache						(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< shift << left << "RandomCache" << ' '
-		<<  test_cache<RandomCache<DB>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_cache<Cache::RandomCache<DB_t>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< shift << left << "LRUCache" << ' '
-		<<  test_cache<LRUCache<DB>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_cache<Cache::LRUCache<DB_t>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< shift << left << "TWOQCache" << ' '
-		<< test_cache<TWOQCache<DB>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_cache<Cache::TWOQCache<DB_t>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< shift << left << "BeladyCache" << ' '
-		<<  test_belady_cache			(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_belady_cache					(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< "\n\n";	
 }
 
@@ -122,15 +126,15 @@ int main(int argc, char *argv[])
 		nlookups, ndifferent_queries, cache_sz);
 
 	if (opt_random_queries) {
-		auto random_queries = generate_random_queries(nlookups, ndifferent_queries);
+		auto random_queries = Cache::generate_random_queries(nlookups, ndifferent_queries);
 		run_all_tests("RANDOM QUERIES", cache_sz, random_queries);
 	}
 	if (opt_graph_queries) {
-		auto graph_queries = generate_graph_queries(nlookups, ndifferent_queries, 1);	
+		auto graph_queries = Cache::generate_graph_queries(nlookups, ndifferent_queries, 1);	
 		run_all_tests("GRAPH-LIKE QUERIES [1 link per node]", cache_sz, graph_queries);
-		graph_queries = generate_graph_queries(nlookups, ndifferent_queries, 2);	
+		graph_queries = Cache::generate_graph_queries(nlookups, ndifferent_queries, 2);	
 		run_all_tests("GRAPH-LIKE QUERIES [2 links per node]", cache_sz, graph_queries);
-		graph_queries = generate_graph_queries(nlookups, ndifferent_queries, 3);	
+		graph_queries = Cache::generate_graph_queries(nlookups, ndifferent_queries, 3);	
 		run_all_tests("GRAPH-LIKE QUERIES [3 links per node]", cache_sz, graph_queries);
 	}
 

@@ -31,6 +31,8 @@
 #include <unordered_map>
 #include <cstring> // for strerror()
 
+namespace DB {
+
 /* Служебный класс
  * Нужен для объявления метода contains() */
 template <class Key>
@@ -191,5 +193,6 @@ SimpleDB<Key, Page>::get_page(const key_t& key) const
 	}
 }
 
+} // DB namespace end
 
 #endif // _DATA_BASE_H_

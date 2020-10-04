@@ -13,8 +13,8 @@ int main()
 {
 	int cache_sz = 3;
 
-	EndlessDB endless;
-	LRUCache<EndlessDB> cache(endless, cache_sz);
+	DB::EndlessDB endless;
+	Cache::LRUCache<DB::EndlessDB> cache(endless, cache_sz);
 	std::vector<int> queries = {1, 2, 3, 4, 2, 1};
 
 	for (int query : queries) {

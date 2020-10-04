@@ -6,6 +6,8 @@
 #include "timer.h"
 #include <cassert>
 
+namespace Cache {
+
 struct TestResult {
 	int nhits, nlookups;
 	uint64_t usec; // Затраченное процессорное время
@@ -40,7 +42,7 @@ template <class DataBase, class InputIt>
 TestResult test_dummy_cache(const DataBase& db, size_t cache_sz,
 	InputIt queries_from, InputIt queries_to)
 {
-	DummyCache<DataBase> cache(db);
+	Cache::DummyCache<DataBase> cache(db);
 	Timer timer;
 
 	for (; queries_from != queries_to; ++queries_from)
@@ -56,7 +58,7 @@ template <class DataBase, class InputIt>
 TestResult test_belady_cache(const DataBase& db, size_t cache_sz,
 	InputIt queries_from, InputIt queries_to)
 {
-	BeladyCache<DataBase> cache(db, cache_sz);
+	Cache::BeladyCache<DataBase> cache(db, cache_sz);
 	Timer timer;
 
 	for (; queries_from != queries_to; ++queries_from)
@@ -161,5 +163,6 @@ std::vector<int> generate_graph_queries(int nqueries,
 	return queries;
 }
 
+} // Cache namespace end
 
 #endif // _TESTING_FACILITIES_H_

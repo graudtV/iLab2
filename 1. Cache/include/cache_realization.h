@@ -26,6 +26,7 @@
 
 #endif // CACHE_VERBOSE
 
+namespace Cache {
 
 template <class DataBase>
 const typename RandomCache<DataBase>::page_t&
@@ -204,5 +205,6 @@ BeladyCache<DataBase>::get_temp_page(const key_t& key,
 #undef _CACHE_PRINTMSG_VACANT_SPACE
 #undef _CACHE_PRINTMSG_DELETING_PAGE
 
+} // Cache namespace end
 
 #endif // _CACHE_REALIZATION_H_

@@ -19,6 +19,8 @@
 #include <list>
 #include <cassert>
 
+namespace Cache {
+
 class CacheAnalitics {
 public:
 	CacheAnalitics() :
@@ -42,7 +44,7 @@ private:
 template <class DataBase>
 class AbstractCache :
 	public CacheAnalitics,
-	public AbstractIDB <
+	public DB::AbstractIDB <
 		typename DataBase::key_t,
 		typename DataBase::page_t >
 {
@@ -239,6 +241,8 @@ protected:
 
 	mutable std::unordered_map<key_t, page_t> m_hashtbl;
 };
+
+} // Cache namespace end
 
 #include "cache_realization.h"
 
