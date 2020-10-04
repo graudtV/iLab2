@@ -52,8 +52,11 @@ void run_all_tests(
 		<<  test_cache<RandomCache<DB>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< shift << left << "LRUCache" << ' '
 		<<  test_cache<LRUCache<DB>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< shift << left << "TWOQCache" << ' '
+		<< test_cache<TWOQCache<DB>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
 		<< shift << left << "BeladyCache" << ' '
-		<<  test_belady_cache			(db, cache_sz, queries_from, queries_to)	<< "\n\n";	
+		<<  test_belady_cache			(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< "\n\n";	
 }
 
 void run_all_tests(const std::string& test_title, int cache_sz,
@@ -78,6 +81,8 @@ void usage_error(const char *progname, const char *err_info)
 
 int main(int argc, char *argv[])
 {
+	std::ios::sync_with_stdio(true);
+	
 	const char * const progname = argv[0];
 	int opt_random_queries = 0;
 	int opt_graph_queries = 0;
@@ -113,6 +118,8 @@ int main(int argc, char *argv[])
 		usage_error(progname, "last 3 arguments must be positive numbers");
 
 	srand(time(0));
+	printf("TEST CONDITIONS: nlookups = %d, ndifferent_queries = %d, cache_sz = %d\n\n",
+		nlookups, ndifferent_queries, cache_sz);
 
 	if (opt_random_queries) {
 		auto random_queries = generate_random_queries(nlookups, ndifferent_queries);

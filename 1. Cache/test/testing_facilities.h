@@ -134,7 +134,7 @@ std::vector<int> generate_random_queries(int nqueries, int ndifferent_queries)
  *  Граф и обход графа создаются случайно
  *
  * \param nqueries - число запросов, равно размеру возвращаемого массива
- * \param ndifferent_quires - число различных запросов, должно быть
+ * \param ndifferent_queres - число различных запросов, должно быть
  *  положительным числом
  * \param links_per_node - характеризует плотность графа, а именно
  *  максимальное число связей, которое может быть у каждого из узлов.

@@ -13,10 +13,10 @@
 #ifndef _DATA_BASE_H_
 #define _DATA_BASE_H_
 
-/* SIMPLE_DB_TIMEOUT_US sets timeout for
+/* ENDLESS_DB_TIMEOUT_US sets timeout for
  * each call to EndlessDB::get_page() */
-#ifndef SIMPLE_DB_TIMEOUT_US
-#define SIMPLE_DB_TIMEOUT_US 0
+#ifndef ENDLESS_DB_TIMEOUT_US
+#define ENDLESS_DB_TIMEOUT_US 0
 #endif
 
 /* If SIMPLE_DB_VERBOSE is defined, each call 
@@ -146,7 +146,7 @@ EndlessDB::page_t EndlessDB::get_page(const key_t& key) const
 	std::cout.flush();
 #endif // SIMPLE_DB_VERBOSE
 
-	usleep(SIMPLE_DB_TIMEOUT_US);
+	usleep(ENDLESS_DB_TIMEOUT_US);
 
 #ifdef SIMPLE_DB_VERBOSE
 	std::cout << "\t\t[ OK ]\n";
