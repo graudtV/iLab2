@@ -51,15 +51,15 @@ void run_all_tests(
 		<< shift << "" << " HITS      LOOKUPS     HIT RATIO    TIME(sec)    SPEED(usec/query)\n";
 	std::cout
 		<< shift << left << "DummyCache"	<< ' '
-		<< test_dummy_cache						(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_dummy_cache                     (db, cache_sz, queries_from, queries_to) << std::endl
 		<< shift << left << "RandomCache" << ' '
-		<< test_cache<Cache::RandomCache<DB_t>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_cache<Cache::RandomCache<DB_t>> (db, cache_sz, queries_from, queries_to) << std::endl
 		<< shift << left << "LRUCache" << ' '
-		<< test_cache<Cache::LRUCache<DB_t>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_cache<Cache::LRUCache<DB_t>>    (db, cache_sz, queries_from, queries_to) << std::endl
 		<< shift << left << "TWOQCache" << ' '
-		<< test_cache<Cache::TWOQCache<DB_t>>	(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_cache<Cache::TWOQCache<DB_t>>   (db, cache_sz, queries_from, queries_to) << std::endl
 		<< shift << left << "BeladyCache" << ' '
-		<< test_belady_cache					(db, cache_sz, queries_from, queries_to)	<< std::endl
+		<< test_belady_cache                    (db, cache_sz, queries_from, queries_to) << std::endl
 		<< "\n\n";	
 }
 
