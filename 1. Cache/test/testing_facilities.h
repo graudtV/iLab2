@@ -27,7 +27,7 @@ TestResult test_cache(const typename Cache::database_t& db, size_t cache_sz,
 	InputIt queries_from, InputIt queries_to)
 {
 	Cache cache(db, cache_sz);
-	Timer timer;
+	mytime::Timer timer;
 
 	for (; queries_from != queries_to; ++queries_from)
 		cache.get_temp_page(*queries_from);
@@ -43,7 +43,7 @@ TestResult test_dummy_cache(const DataBase& db, size_t cache_sz,
 	InputIt queries_from, InputIt queries_to)
 {
 	Cache::DummyCache<DataBase> cache(db);
-	Timer timer;
+	mytime::Timer timer;
 
 	for (; queries_from != queries_to; ++queries_from)
 		cache.get_temp_page(*queries_from);
@@ -59,7 +59,7 @@ TestResult test_belady_cache(const DataBase& db, size_t cache_sz,
 	InputIt queries_from, InputIt queries_to)
 {
 	Cache::BeladyCache<DataBase> cache(db, cache_sz);
-	Timer timer;
+	mytime::Timer timer;
 
 	for (; queries_from != queries_to; ++queries_from)
 		cache.get_temp_page(*queries_from, queries_from, queries_to);

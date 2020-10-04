@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+namespace mytime {
+
 class Timer {
 public:
 	Timer()
@@ -25,5 +27,7 @@ public:
 private:
 	struct timespec m_time_start;
 };
+
+} // mytime namespace end
 
 #endif // _TIMER_H_
