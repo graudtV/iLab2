@@ -1,23 +1,15 @@
-//#define SIMPLE_DB_VERBOSE
-//#define CACHE_VERBOSE
+// #define SIMPLE_DB_VERBOSE
+// #define CACHE_VERBOSE
 
 #include "../include/database.h"
 #include "../include/cache.h"
+#include "../test/testing_facilities.h"
 
 using std::cout;
 using std::endl;
 
-struct TestCacheResult {
-	int nhits, nlookups;
-
-	TestCacheResult(int hits, int lookups) :
-		nhits(hits), nlookups(lookups) {}
-
-	friend std::ostream& operator <<
-		(std::ostream& os, const TestCacheResult& res);
-};
-
-operator <<(std::ostream& os, const TestCacheResult& res)
+std::ostream& operator <<
+	(std::ostream& os, const TestResult& res)
 {
 	os << "hits = " << res.nhits
 		<< "\tlookups = " << res.nlookups
@@ -27,19 +19,8 @@ operator <<(std::ostream& os, const TestCacheResult& res)
 }
 
 
-template <class Cache>
-TestCacheResult test_cache
-	(size_t cache_sz, int npages, int niterations)
-{
-	typename Cache::database_t db;
-	Cache cache(db, cache_sz);
-
-	for (int i = 0; i < niterations; ++i)
-		cache.get_temp_page(rand() % npages);
-
-	return TestCacheResult(cache.nhits(), cache.nlookups());
-}
-
+/* debug print */
+#define DPRINT(var) cout << #var ":\n\t" << (var) << endl
 
 int main()
 {
@@ -66,11 +47,15 @@ int main()
 	BeladyCache<FileSystemDB> belady_filesystem(filesystem, 5);
 	BeladyCache<Simple> belady_simple(simple, 5); 
 
-	cout << "RandomCache<EndlessDB>:\t"
-		<< test_cache<RandomCache<EndlessDB>>(10, 100, 100000) << endl;
-	cout << "LRUCache<EndlessDB>:\t"
-		<< test_cache<LRUCache<EndlessDB>>(10, 100, 100000) << endl;
+	std::vector<int> queries;
+	for (int i = 0; i < 1000000; ++i)
+		queries.push_back(rand() % 11);
 
+	DPRINT(test_dummy_cache						(endless, 10, queries.begin(), queries.end()));
+	DPRINT(test_cache<RandomCache<EndlessDB>>	(endless, 10, queries.begin(), queries.end()));
+	DPRINT(test_cache<LRUCache<EndlessDB>>		(endless, 10, queries.begin(), queries.end()));
+	DPRINT(test_belady_cache					(endless, 10, queries.begin(), queries.end()));
 
+	//test_cache<RandomCache<EndlessDB>>(endless, 10, queries.begin(), queries.end());
 	return 0;
 }

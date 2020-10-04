@@ -11,7 +11,7 @@ clean:
 	rm -rf bin
 
 test: bin/test bin/test/test_efficiency
-	bin/test/test_efficiency 1000000 100 10
+	bin/test/test_efficiency -g 1000000 1000 10
 
 bin/example: src/example.cpp $(HEADERS) bin
 	$(CC) $(CFLAGS) -o $@ $<
