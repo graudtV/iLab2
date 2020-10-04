@@ -29,6 +29,7 @@
 #include <unistd.h> // for usleep()
 #include <sys/stat.h> // for stat()
 #include <unordered_map>
+#include <cstring> // for strerror()
 
 /* Служебный класс
  * Нужен для объявления метода contains() */

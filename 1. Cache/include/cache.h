@@ -17,6 +17,7 @@
 #include "database.h"
 #include <unordered_map>
 #include <list>
+#include <cassert>
 
 class CacheAnalitics {
 public:
