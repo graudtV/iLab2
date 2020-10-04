@@ -3,7 +3,7 @@ CC = cc
 CFLAGS = -std=c++11 -lc++
 HEADERS = include/cache.h include/cache_realization.h include/database.h
 
-all: run-test
+all: example test
 
 example: bin/example
 
