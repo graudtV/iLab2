@@ -36,19 +36,19 @@ namespace DB {
 /* Служебный класс
  * Нужен для объявления метода contains() */
 template <class Key>
-class _AbstractDB {
+class AbstractDB_ {
 public:
 	using key_t = Key;
 
-	_AbstractDB() = default;
-	virtual ~_AbstractDB() = default;
+	AbstractDB_() = default;
+	virtual ~AbstractDB_() = default;
 
 	virtual bool contains(const key_t& key) const = 0;
 };
 
 template <class Key, class Page>
 class AbstractIDB :
-	public _AbstractDB<Key>
+	public AbstractDB_<Key>
 {
 public:
 	using key_t = Key;
@@ -71,7 +71,7 @@ public:
 
 template <class Key, class Page>
 class AbstractODB :
-	_AbstractDB<Key>
+	AbstractDB_<Key>
 {
 public:
 	using key_t = Key;
