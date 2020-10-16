@@ -4,6 +4,11 @@
 namespace Geometry {
 
 float Float::float_tolerance = 0.01;
+const Point Point::null_point(0, 0, 0);
+const Vector Vector::null_vector(0, 0, 0);
+const Plane Plane::oxy({0, 0, 0}, {1, 0, 0}, {0, 1, 0});
+const Plane Plane::oxz({0, 0, 0}, {1, 0, 0}, {0, 0, 1});
+const Plane Plane::oyz({0, 0, 0}, {0, 1, 0}, {0, 0, 1});
 
 bool Point::valid() const
 { return x.valid() && y.valid() && z.valid(); }

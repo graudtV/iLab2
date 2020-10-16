@@ -66,6 +66,8 @@ struct Point {
 
 	Point(Float xx, Float yy, Float zz) : x(xx), y(yy), z(zz) {}
 	bool valid() const;
+
+	static const Point null_point;
 };
 
 std::ostream& operator <<(std::ostream& os, const Point& pnt);
@@ -120,6 +122,7 @@ struct Triangle {
 
 std::ostream& operator <<(std::ostream& os, const Triangle& trg);
 
+
 /* Отрезок */
 struct Segment {
 	Point a, b;
@@ -150,6 +153,8 @@ struct Plane {
 	explicit Plane(const Triangle& trg) :
 		a(trg.a), b(trg.b), c(trg.c) {}
 	bool valid() const;
+
+	static const Plane oxy, oxz, oyz;
 };
 
 std::ostream& operator <<(std::ostream& os, const Plane& plane);
@@ -157,8 +162,6 @@ std::ostream& operator <<(std::ostream& os, const Plane& plane);
 
 using FinitePointSet = std::vector<Point>;
 struct EmptySet {};
-const Point null_point = Point(0, 0, 0);
-const Vector null_vector = Vector(0, 0, 0);
 
 /* Расстояние в виде вектора */
 Vector vdistance(const Point& fst, const Point& snd);
@@ -178,7 +181,6 @@ intersection(const Segment& fst, const Segment& snd); // not implemented
 template <class T1, class T2>
 Float distance(const T1& fst, const T2& snd)
 	{ return vdistance(fst, snd).module(); }
-
 
 } // Geometry namespace end
 
