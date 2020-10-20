@@ -129,6 +129,7 @@ struct Segment {
 
 	Segment(const Point& aa, const Point& bb) : a(aa), b(bb) {}
 	bool valid() const;
+	bool contains(const Point& pnt) const;
 };
 
 std::ostream& operator <<(std::ostream& os, const Segment& seg);
@@ -140,10 +141,13 @@ struct Line {
 	Line(const Point& aa, const Point& bb) : a(aa), b(bb) {}
 	Line(const Segment& seg) : a(seg.a), b(seg.b) {}
 	bool valid() const;
+	bool contains(const Point& pnt) const;
 };
 
 std::ostream& operator <<(std::ostream& os, const Line& line);
-
+bool operator ==(const Line& fst, const Line& snd);
+inline bool operator !=(const Line& fst, const Line& snd)
+	{ return !(fst == snd); }
 
 struct Plane {
 	Point a, b, c;
@@ -170,13 +174,13 @@ Vector vdistance(const Point& pnt, const Plane& plane);
 bool intersected(const Triangle& fst, const Triangle& snd);
 
 std::variant<EmptySet, Line, Plane>
-intersection(const Plane& fst, const Plane& snd); // not implemented
+intersection(const Plane& fst, const Plane& snd);
 
 std::variant<EmptySet, FinitePointSet, Segment>
-intersection(const Line& line, const Triangle& trg); // not implemented
+intersection(const Line& line, const Triangle& trg);
 
 std::variant<EmptySet, Point, Segment>
-intersection(const Segment& fst, const Segment& snd); // not implemented
+intersection(const Segment& fst, const Segment& snd);
 
 template <class T1, class T2>
 Float distance(const T1& fst, const T2& snd)

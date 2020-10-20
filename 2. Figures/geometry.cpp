@@ -67,14 +67,32 @@ std::ostream& operator <<(std::ostream& os, const Triangle& trg)
 	return os << "<" << trg.a << ", " << trg.b << ", " << trg.c << ">";
 }
 
+bool Segment::valid() const
+	{ return a.valid() && b.valid() && (a != b); }
+
+bool Segment::contains(const Point& pnt) const
+{
+	auto vec1 = vdistance(a, pnt);
+	auto vec2 = vdistance(b, pnt);
+	return (Vector::inner_product(vec1, vec2) <= 0
+		&& Vector::outer_product(vec1, vec2) == Vector::null_vector);
+}
+
+bool Line::contains(const Point& pnt) const
+{
+	auto vec1 = vdistance(a, pnt);
+	auto vec2 = vdistance(b, pnt);
+	return (Vector::outer_product(vec1, vec2) == Vector::null_vector);
+}
+
 bool Line::valid() const
 	{ return a.valid() && b.valid() && (a != b); }
 
+bool operator ==(const Line& fst, const Line& snd)
+	{ return (fst.contains(snd.a) && fst.contains(snd.b)); }
+
 std::ostream& operator <<(std::ostream& os, const Line& line)
 	{ return os << "<" << line.a << " - " << line.b << ">"; }
-
-bool Segment::valid() const
-	{ return a.valid() && b.valid() && (a != b); }
 
 std::ostream& operator <<(std::ostream& os, const Segment& seg)
 	{ return os << "[" << seg.a << "; " << seg.b << "]"; }
@@ -99,6 +117,24 @@ Vector vdistance(const Point& pnt, const Plane& plane)
 	Vector l = Vector(pnt, plane.a);
 
 	return Vector::mixed_product(a, b, l) / Vector::mixed_product(a, b, n) * n;
+}
+
+std::variant<EmptySet, Line, Plane>
+intersection(const Plane& fst, const Plane& snd) // not implemented
+{
+	return EmptySet();
+}
+
+std::variant<EmptySet, FinitePointSet, Segment>
+intersection(const Line& line, const Triangle& trg) // not implemented
+{
+	return EmptySet();
+}
+
+std::variant<EmptySet, Point, Segment>
+intersection(const Segment& fst, const Segment& snd) // not implemented
+{
+	return EmptySet();
 }
 
 bool intersected(const Triangle& fst, const Triangle& snd)
