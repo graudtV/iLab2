@@ -11,6 +11,7 @@ namespace Geometry {
 /* Сравнивает float с учетом float_tolerance */
 class Float {
 public:
+	Float() {}
 	Float(float val) : m_val(val) {}
 	operator float() const { return m_val; }
 	Float& operator +=(Float other) { m_val += other; return *this; }
@@ -61,10 +62,13 @@ private:
 	float m_val;
 };
 
+struct Vector;
+
 struct Point {
 	Float x, y, z;
 
 	Point(Float xx, Float yy, Float zz) : x(xx), y(yy), z(zz) {}
+	explicit Point(const Vector& vec);
 	bool valid() const;
 
 	static const Point null_point;
@@ -74,7 +78,7 @@ std::ostream& operator <<(std::ostream& os, const Point& pnt);
 bool operator ==(const Point& fst, const Point& snd);
 inline bool operator !=(const Point& fst, const Point& snd)
 	{ return !(fst == snd); }
-
+Point operator +(const Point& pnt, const Vector& vec);
 
 struct Vector {
 	Float x, y, z;
@@ -88,6 +92,10 @@ struct Vector {
 	Float module() const
 		{ return std::sqrt(x*x + y*y + z*z); }
 
+	/* Разложения по базису */
+	Float decompose(const Vector& basis) const;
+	std::array<Float, 2> decompose(const Vector& fst, const Vector& snd) const;
+
 	Vector operator /(Float value) const
 		{ return Vector(x / value, y / value, z / value); }
 
@@ -98,8 +106,11 @@ struct Vector {
 		const Vector& snd, const Vector& thd);
 	static Vector unit(const Vector& vec)
 		{ return vec / vec.module(); }
+	static bool collinear(const Vector& fst, const Vector& snd);
 
 	static const Vector null_vector;
+
+	struct DecompositionError {};
 };
 
 std::ostream& operator <<(std::ostream& os, const Vector& vec);
@@ -142,6 +153,7 @@ struct Line {
 	Line(const Segment& seg) : a(seg.a), b(seg.b) {}
 	bool valid() const;
 	bool contains(const Point& pnt) const;
+	Vector direction() const { return Vector(a, b); }
 };
 
 std::ostream& operator <<(std::ostream& os, const Line& line);
@@ -157,12 +169,12 @@ struct Plane {
 	explicit Plane(const Triangle& trg) :
 		a(trg.a), b(trg.b), c(trg.c) {}
 	bool valid() const;
+	Vector normal() const;
 
 	static const Plane oxy, oxz, oyz;
 };
 
 std::ostream& operator <<(std::ostream& os, const Plane& plane);
-
 
 using FinitePointSet = std::vector<Point>;
 struct EmptySet {};
@@ -176,11 +188,17 @@ bool intersected(const Triangle& fst, const Triangle& snd);
 std::variant<EmptySet, Line, Plane>
 intersection(const Plane& fst, const Plane& snd);
 
-std::variant<EmptySet, FinitePointSet, Segment>
+std::variant<EmptySet, Point, Segment>
 intersection(const Line& line, const Triangle& trg);
 
 std::variant<EmptySet, Point, Segment>
 intersection(const Segment& fst, const Segment& snd);
+
+std::variant<EmptySet, Point, Segment>
+intersection(const Line& line, const Segment& seg);
+
+std::variant<EmptySet, Point, Line>
+intersection(const Line& fst, const Line& snd);
 
 template <class T1, class T2>
 Float distance(const T1& fst, const T2& snd)

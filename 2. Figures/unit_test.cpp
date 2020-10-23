@@ -41,6 +41,34 @@ TEST_CASE ( "Line::contains()", "[Line]" ) {
 	REQUIRE(line.contains({2, 0, 0}));
 }
 
+TEST_CASE ("Vector::decompose(Vector)", "[Vector]" ) {
+	SECTION ( "correct decomposition" ) {
+		REQUIRE(Geometry::Vector(10, 20, 30).decompose({1, 2, 3}) == 10);
+	}
+	SECTION ( "impossible decomposition" ) {
+		bool exception_thrown = false;
+		try { Geometry::Vector(10, 20, 30).decompose({1, 2, 3.5}); }
+		catch (Geometry::Vector::DecompositionError&) { exception_thrown = true; }
+		REQUIRE(exception_thrown);
+	}
+}
+
+TEST_CASE ("Vector::decompose(Vector, Vector)", "[Vector]" ) {
+	SECTION ( "correct decomposition" ) {
+		// v3 = 2.5*v1 - 3*v2
+		Geometry::Vector v1 = {1, 2, 3}, v2 = {2, 7, 6}, v3 = {-3.5, -16, -10.5};
+		auto koeffs = v3.decompose(v1, v2);
+		REQUIRE(koeffs[0] == 2.5);
+		REQUIRE(koeffs[1] == -3.0);
+	}
+	SECTION ( "impossible decomposition" ) {
+		bool exception_thrown = false;
+		try { Geometry::Vector(1, 0, 0).decompose({0, 1, 0}, {0, 0, 1}); }
+		catch (Geometry::Vector::DecompositionError&) { exception_thrown = true; }
+		REQUIRE(exception_thrown);
+	}	
+}
+
 TEST_CASE ( "Vector::inner_product", "[Vector]" ) {
 	REQUIRE(Geometry::Vector::inner_product(
 		null_vector, Geometry::Vector(10, 20, 30)) == 0);
@@ -70,6 +98,13 @@ TEST_CASE ( "Vector::mixed_product", "[Vector]" ) {
 		== -112.908978 );
 }
 
+TEST_CASE ( "Vector::collinear", "[Vector]" ) {
+	REQUIRE(Geometry::Vector::collinear({10, 20, 30}, {15, 30, 45}));
+	REQUIRE(!Geometry::Vector::collinear({10, 20, 30}, {15, 30, 46}));
+	REQUIRE(Geometry::Vector::collinear({1, 0, 0}, {1, 0, 0}));
+	REQUIRE(Geometry::Vector::collinear({10, 20, 30}, {0, 0, 0}));
+}
+
 TEST_CASE ( "vdistance(Point, Point)", "[distance]" ) {
 	REQUIRE(Geometry::vdistance({0, 0, 0}, {10, 20, 30})
 		== Geometry::Vector(10, 20, 30));
@@ -82,6 +117,28 @@ TEST_CASE( "distance(Point, Plane)", "[distance]" ) {
 		Geometry::Point(1, 1, 1),
 		Geometry::Plane({0, 0, 0}, {1, -1, 0}, {1, 1, -2}) // x + y + z = 0
 		) == 1.7320508075688772f);
+}
+
+TEST_CASE ( "intersected(Triangle, Triangle)", "[intersections]" ) {
+	Geometry::Triangle trg1(null_point, {1, 0, 0}, {0, 1, 0});
+
+	SECTION( "on parallel planes (not intersected)" ) {
+		Geometry::Triangle trg2({0, 0, 1}, {1, 0, 1}, {0, 1, 1});
+		REQUIRE(!intersected(trg1, trg2));
+	}
+	SECTION ( "all points of trg2 are on one halfplane relatively to trg1" ) {
+		Geometry::Triangle trg2({0, 0, 1}, {1, 0, 3}, {0, 1, 2});
+		REQUIRE(!intersected(trg1, trg2));		
+	}
+	SECTION ( "intersection (as segment)" ) {
+		Geometry::Triangle trg2({-1, -2, 1}, {1, 2, 4}, {2, 4, -3});
+		REQUIRE(intersected(trg1, trg2));			
+	}
+	SECTION ( "trg2 have points on different halfplanes relatively to trg1"
+		" but triangles are not intersected" ) {
+		Geometry::Triangle trg2({-1, -2, 1}, {1, -2, 4}, {2, -4, -3});
+		REQUIRE(intersected(trg1, trg2));			
+	}
 }
 
 TEST_CASE ( "intersection(Plane, Plane)", "[intersections]" ) {
@@ -103,8 +160,7 @@ TEST_CASE ( "intersection(Line, Triangle)", "[intersections]" ) {
 	SECTION ( "same plane, intersected" ) {
 		Geometry::Line line({0.5, 0, 0}, {0, 0.5, 0});
 		auto intersection = Geometry::intersection(line, triangle);
-		REQUIRE(std::holds_alternative<Geometry::FinitePointSet>(intersection));
-		REQUIRE(std::get<Geometry::FinitePointSet>(intersection).size() == 2);
+		REQUIRE(std::holds_alternative<Geometry::Segment>(intersection));
 	}
 	SECTION ( "parallel planes (not intersected)" ) {
 		Geometry::Line line({1, 0, 1}, {0, 1, 1});
@@ -117,8 +173,7 @@ TEST_CASE ( "intersection(Line, Triangle)", "[intersections]" ) {
 	SECTION ( "line intersects plane and triangle side" ) {
 		Geometry::Line line({0.5, 0, -1}, {0.5, 0, 1});
 		auto intersection = Geometry::intersection(line, triangle);
-		REQUIRE(std::holds_alternative<Geometry::FinitePointSet>(intersection));
-		REQUIRE(std::get<Geometry::FinitePointSet>(intersection).size() == 1);		
+		REQUIRE(std::holds_alternative<Geometry::Segment>(intersection));	
 	}
 }
 
@@ -130,8 +185,8 @@ TEST_CASE ( "intersection(Segment, Segment)", "[intersections]" ) {
 	}
 	SECTION( "on one line, intersected" ) {
 		Geometry::Segment seg2({0.5, 0, 0},  {1.5, 0, 0});
-		auto intersection = Geometry::intersection(seg1, seg2);
-		REQUIRE(std::holds_alternative<Geometry::Segment>(intersection));
+		auto intrsctn = Geometry::intersection(seg1, seg2);
+		REQUIRE(std::holds_alternative<Geometry::Segment>(intrsctn));
 	}
 	SECTION ( "one point intersection" ) {
 		Geometry::Segment seg2({0.5, 1, 0}, {0.5, -1, 0});
@@ -139,25 +194,32 @@ TEST_CASE ( "intersection(Segment, Segment)", "[intersections]" ) {
 	}
 }
 
-// TODO: дописать тест ниже
-TEST_CASE ( "intersected(Triangle, Triangle)", "[intersections]" ) {
-	Geometry::Triangle trg1(null_point, {1, 0, 0}, {0, 1, 0});
+TEST_CASE ( "intersection(Line, Segment)", "[intersections]" ) {
 
-	SECTION( "on parallel planes (not intersected)" ) {
-		Geometry::Triangle trg2({0, 0, 1}, {1, 0, 1}, {0, 1, 1});
-		REQUIRE(!intersected(trg1, trg2));
+}
+
+TEST_CASE ( "intersection(Line, Line)", "[intersections]" ) {
+	SECTION ( "parallel lines" ) {
+		REQUIRE(std::holds_alternative<Geometry::EmptySet>(intersection(
+			Geometry::Line({0, 0, 0}, {1, 0, 0}),
+			Geometry::Line({0, 0, 1}, {1, 0, 1}))));
 	}
-	SECTION ( "all points of trg2 are on one halfplane relatively to trg1" ) {
-		Geometry::Triangle trg2({0, 0, 1}, {1, 0, 3}, {0, 1, 2});
-		REQUIRE(!intersected(trg1, trg2));		
+	SECTION ( "crossed lines (not intersected)" ) {
+		REQUIRE(std::holds_alternative<Geometry::EmptySet>(intersection(
+			Geometry::Line({1, 2, 3}, {4, 5, 6}),
+			Geometry::Line({7, 3, 5}, {4, 2, 1}))));	
 	}
-	SECTION ( "intersection (as segment)" ) {
-		Geometry::Triangle trg2({-1, -2, 1}, {1, 2, 4}, {2, 4, -3});
-		REQUIRE(intersected(trg1, trg2));			
+	SECTION ( "intersected lines" ) {
+		auto intrsctn = Geometry::intersection(
+			Geometry::Line({0, 0, 1}, {1, 1, 1}),
+			Geometry::Line({1, 0, 1}, {0, 1, 1}));
+		REQUIRE(std::holds_alternative<Geometry::Point>(intrsctn));
+		REQUIRE(std::get<Geometry::Point>(intrsctn) == Geometry::Point(0.5, 0.5, 1));
 	}
-	SECTION ( "trg2 have points on different halfplanes relatively to trg1"
-		" but triangles are not intersected" ) {
-		Geometry::Triangle trg2({-1, -2, 1}, {1, -2, 4}, {2, -4, -3});
-		REQUIRE(intersected(trg1, trg2));			
+	SECTION ( "the same line" ) {
+		Geometry::Line line(null_point, {1, 0, 0});
+		REQUIRE(std::holds_alternative<Geometry::Line>(intersection(line, line)));
+		REQUIRE(std::holds_alternative<Geometry::Line>(intersection(
+			line, Geometry::Line({0.5, 0, 0}, {1.5, 0, 0}))));
 	}
 }
