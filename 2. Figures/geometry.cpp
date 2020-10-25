@@ -1,6 +1,6 @@
 #include "geometry.h"
 #include <cmath>
-#include <set>
+#include <sstream>
 
 namespace Geometry {
 
@@ -200,24 +200,20 @@ intersection(const Line& line, const Triangle& trg) // not implemented
 std::variant<EmptySet, Point, Segment>
 intersection(const Segment& fst, const Segment& snd)
 {
-	std::cout << ">::: segment_intersection\n";
 	auto lines_intersection = intersection(Line(fst), Line(snd));
 	if (std::holds_alternative<Point>(lines_intersection)) {
-		std::cout << ">::: 2 lines -> point\n";
 		Point pnt = std::get<Point>(lines_intersection);
 		if (fst.contains(pnt) && snd.contains(pnt))
 			return pnt;
 		return EmptySet();
 	}
-	if (std::holds_alternative<EmptySet>(lines_intersection)) {
-		std::cout << ">::: lines not intersected\n";
+	if (std::holds_alternative<EmptySet>(lines_intersection))
 		return EmptySet();
-	}
+
 	/* Два отрезка лежат на одной прямой */
 	/*  Раскладываем вектора из начальной точки прямой в каждый из концов
 	 * отрезка по базису из направляющего вектора прямой */
 	Line line = std::get<Line>(lines_intersection);
-	std::cout << ">::: on one line\n";
 	Vector linedir = line.direction();
 	Point line_origin = line.a;
 	Float a1 = Vector(line_origin, fst.a).decompose(linedir);
@@ -225,7 +221,6 @@ intersection(const Segment& fst, const Segment& snd)
 	Float b1 = Vector(line_origin, snd.a).decompose(linedir);
 	Float b2 = Vector(line_origin, snd.b).decompose(linedir);
 
-	std::cout << ">::: " << a1 << "; " << a2 << "; " << b1 << "; " << b2 << "\n";
 	/* Задача свелась к задаче на прямой. a1,...,a4 - координаты на прямой */
 	if (a1 > a2)
 		std::swap(a1, a2);
@@ -300,9 +295,10 @@ bool intersected(const Triangle& fst, const Triangle& snd)
 		? false : true;
 
 	} catch(std::bad_variant_access&) {
-		std::cerr << "Cannot understand if triangles " << fst
-			<< " and " << snd << " intersected: too hard case. Returning false";
-		return false;
+		std::ostringstream err_msg;
+		err_msg << "Cannot understand if triangles " << fst
+			<< " and " << snd << " are intersected: too hard case";
+		throw std::runtime_error(err_msg.str());
 	}
 }
 
