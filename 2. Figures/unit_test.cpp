@@ -163,6 +163,14 @@ TEST_CASE ( "intersected(Triangle, Triangle)", "[intersections]" ) {
 		Geometry::Triangle trg2({-1, -2, 1}, {1, -2, 4}, {2, -4, -3});
 		REQUIRE(!intersected(trg1, trg2));			
 	}
+	SECTION ( "triangles are on the same plane, but not intersected (hard case)" ) {
+		Geometry::Triangle trg2({1, 1, 0}, {2, 1, 0}, {1, 2, 0});
+		REQUIRE(!intersected(trg1, trg2));
+	}
+	SECTION ( "triangles are on the same plane, and intersected (hard case)" ) {
+		Geometry::Triangle trg2({1, 1, 0}, {-100, -99, 0}, {-99, -100, 0});
+		REQUIRE(intersected(trg1, trg2));
+	}
 }
 
 TEST_CASE ( "intersection(Plane, Plane)", "[intersections]" ) {

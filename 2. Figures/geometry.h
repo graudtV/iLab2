@@ -195,6 +195,9 @@ std::variant<EmptySet, Point, Segment>
 intersection(const Line& line, const Triangle& trg);
 
 std::variant<EmptySet, Point, Segment>
+intersection(const Segment& seg, const Triangle& trg);
+
+std::variant<EmptySet, Point, Segment>
 intersection(const Segment& fst, const Segment& snd);
 
 std::variant<EmptySet, Point, Segment>
@@ -211,21 +214,12 @@ template <class T1, class T2>
 bool intersected(const T1& fst, const T2& snd)
 	{ return !std::holds_alternative<EmptySet>(intersection(fst, snd)); }
 
-/* Обобщенный алгоритм расчета числа пересечений (См. nintersections())
- * Complexity: O(n^2) */
-template <class InputIt>
-int nintersections_helper(InputIt figure_fst, InputIt figure_last, ...);
+} // Geometry namespace end
 
-/* Подсчет числа пересечений треугольников (См. nintersections())
- * Complexity: O(nlog(n)) в среднем, O(n^2) в худшем случае */
-template <class InputIt,
-	typename std::enable_if<
-		std::is_same<
-			typename std::iterator_traits<InputIt>::value_type,
-			Triangle>::value,
-		int>::type = 0
->
-int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int);
+/* Шаблоны для работы nintersections() */
+#include "geometry_nintersections.h"
+
+namespace Geometry {
 
 /*  Рассчитывает число взаимных пересечений геометрических фигур.
  *  Самопересечение не учитывается, но пересечение двух любых фигур,
@@ -233,14 +227,22 @@ int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int);
  * если на самом деле эти фигуры равны
  *  InputIt должен указывать на тип фигуры, для которой определена
  * функция bool intersected(*it1, *it2)
- *  Complexity: в худшем случае O(n^2) */
+ *  Complexity: в худшем случае O(n^2). Для некоторых фигур
+ * функция переопределена с менешей алгоритмической сложностью */
 template <class InputIt>
 int nintersections(InputIt figure_fst, InputIt figure_last)
 	{ return nintersections_helper(figure_fst, figure_last, 0); }
 
+/*  Рассчитывает число пересечений между объектами двух групп
+ * геометрических фигур.
+ *  Учитываются пересечения только между группами, но не внутри группы
+ *  Требования на итераторы аналогичны требованиям в nintersections() */
+template <class InputIt1, class InputIt2>
+int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
+	InputIt2 b_fst, InputIt2 b_last)
+	{ return ncrossintersections_helper(a_fst, a_last, b_fst, b_last, 0); }
 
 } // Geometry namespace end
 
-#include "geometry_templates_realization.h"
 
 #endif // GEOMETRY_H_

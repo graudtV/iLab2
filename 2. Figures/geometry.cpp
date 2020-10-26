@@ -259,6 +259,22 @@ intersection(const Line& line, const Triangle& trg)
 }
 
 std::variant<EmptySet, Point, Segment>
+intersection(const Segment& seg, const Triangle& trg)
+{
+	auto intrsctn = intersection(Line(seg), trg);
+	if (std::holds_alternative<EmptySet>(intrsctn))
+		return EmptySet();
+	if (std::holds_alternative<Point>(intrsctn)) {
+		Point pnt = std::get<Point>(intrsctn);
+		if (seg.contains(pnt))
+			return pnt;
+		return EmptySet();
+	}
+	/* intrsctn == Segment */
+	return intersection(std::get<Segment>(intrsctn), seg);
+}
+
+std::variant<EmptySet, Point, Segment>
 intersection(const Segment& fst, const Segment& snd)
 {
 	auto lines_intersection = intersection(Line(fst), Line(snd));
@@ -342,47 +358,63 @@ intersection(const Line& fst, const Line& snd)
 
 bool intersected(const Triangle& fst, const Triangle& snd)
 {
-	Plane plane1(fst);
-	Plane plane2(snd);
-	//std::cout << ">::: " << fst << " and  " << snd << std::endl;
-	{
-		Vector r1 = vdistance(snd.a, plane1);
-		Vector r2 = vdistance(snd.b, plane1);
-		Vector r3 = vdistance(snd.c, plane1);
-		if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0) {
-		//	std::cout << ">::: all on one halfplane 1\n";
-			return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
-		}
-	}
-	{
-		Vector r1 = vdistance(fst.a, plane2);
-		Vector r2 = vdistance(fst.b, plane2);
-		Vector r3 = vdistance(fst.c, plane2);
-		if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0) {
-		//	std::cout << ">::: all on one halfplane 2\n";
-			return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
-		}
-	}
-
-	try {
-
-	auto line = std::get<Line>(intersection(plane1, plane2));
-	//std::cout << ">::: line found: " << line << std::endl;
-	Segment s1 = std::get<Segment>(intersection(line, fst));
-	//std::cout << ">::: seg1 found: " << s1 << std::endl;
-	Segment s2 = std::get<Segment>(intersection(line, snd));
-	//std::cout << ">::: seg2 found: " << s2 << std::endl;
-
-	auto segment_intersection = intersection(s1, s2);
-	return (std::holds_alternative<EmptySet>(segment_intersection))
-		? false : true;
-
-	} catch(std::bad_variant_access&) {
-		std::ostringstream err_msg;
-		err_msg << "Cannot understand if triangles " << fst
-			<< " and " << snd << " are intersected: too hard case";
-		throw std::runtime_error(err_msg.str());
-	}
+	/*  Просто и надежно, легко справляется со случаями, когда оба
+	 * треугольника лежат в одной плоскости.
+	 *  (Но в Geometric Tools for Computer Graphics раздел 11.5.4
+	 * утверждается, что алгоритм через пересечение плоскостей треугольников
+	 * быстрее. (Хотя альтернативный алгоритм вызывает почти те же методы,
+	 * что и тут (потребуется пересекать линию и треугольник, что крайне
+	 * мало отличается от пересечения отрезка и линии),
+	 * + кучу дополнительных методов) Так же в том алгоритме тяжело
+	 * обрабатывать случаи, когда 2 треугольника лежат в одной плоскости,
+	 * потому что приходится решать задачу о пересечении двух плоскостных
+	 * треугольников. Взамен, тот алгоритм позволяет получить непосредственно
+	 * фигуру пересечения) */
+	return intersected(Segment(snd.a, snd.b), fst)
+		|| intersected(Segment(snd.b, snd.c), fst)
+		|| intersected(Segment(snd.a, snd.c), fst)
+		|| intersected(Segment(fst.a, fst.b), snd)
+		|| intersected(Segment(fst.b, fst.c), snd)
+		|| intersected(Segment(fst.a, fst.c), snd);
 }
+
+// bool intersected_v2(const Triangle& fst, const Triangle& snd)
+// {
+//	// Вроде работает на всех случаях кроме одной плоскости, но мне не нравится
+//
+// 	Plane plane1(fst);
+// 	Plane plane2(snd);
+// 	{
+// 		Vector r1 = vdistance(snd.a, plane1);
+// 		Vector r2 = vdistance(snd.b, plane1);
+// 		Vector r3 = vdistance(snd.c, plane1);
+// 		if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0)
+// 			return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
+// 	}
+// 	{
+// 		Vector r1 = vdistance(fst.a, plane2);
+// 		Vector r2 = vdistance(fst.b, plane2);
+// 		Vector r3 = vdistance(fst.c, plane2);
+// 		if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0)
+// 			return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
+// 	}
+
+// 	try {
+
+// 	auto line = std::get<Line>(intersection(plane1, plane2));
+// 	Segment s1 = std::get<Segment>(intersection(line, fst));
+// 	Segment s2 = std::get<Segment>(intersection(line, snd));
+
+// 	auto segment_intersection = intersection(s1, s2);
+// 	return (std::holds_alternative<EmptySet>(segment_intersection))
+// 		? false : true;
+
+// 	} catch(std::bad_variant_access&) {
+// 		std::ostringstream err_msg;
+// 		err_msg << "Cannot understand if triangles " << fst
+// 			<< " and " << snd << " are intersected: too hard case";
+// 		throw std::runtime_error(err_msg.str());
+// 	}
+// }
 
 } // Geometry namespace end

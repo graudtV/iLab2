@@ -1,6 +1,6 @@
 .PHONY: all clean run-example test
 CFLAGS=-std=c++17
-GEOMETRY_HEADERS=geometry.h
+GEOMETRY_HEADERS=geometry.h geometry_nintersections.h other.h
 GEOMETRY_OBJS=obj/geometry.o
 GEOMETRY_FILES=$(GEOMETRY_HEADERS) $(GEOMETRY_OBJS)
 
