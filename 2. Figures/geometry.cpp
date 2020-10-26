@@ -1,6 +1,8 @@
 #include "geometry.h"
 #include <cmath>
 #include <sstream>
+#include <algorithm>
+#include <cassert>
 
 namespace Geometry {
 
@@ -35,7 +37,8 @@ Float Vector::decompose(const Vector& basis) const
 {
 	if (!collinear(*this, basis) || basis == Vector::null_vector)
 		throw DecompositionError();
-	return x/basis.x;
+	return Vector::inner_product(*this, basis) /
+		Vector::inner_product(basis, basis);
 }
 
 std::array<Float, 2>
@@ -44,10 +47,21 @@ Vector::decompose(const Vector& fst, const Vector& snd) const
 	if (Vector::mixed_product(*this, fst, snd) != 0
 		|| Vector::outer_product(fst, snd) == Vector::null_vector)
 		throw DecompositionError();
-	Float denominator = fst.x*snd.y-fst.y*snd.x;
-	Float alpha = (snd.y*x - y*snd.x) / denominator;
-	Float betta = (fst.x*y - x*fst.y) / denominator;
-	return {alpha, betta};
+	Float alpha = 0, betta = 0;
+	Float denominator = 0;
+	if ((denominator = fst.x*snd.y - snd.x*fst.y) != 0) {
+		alpha = x*snd.y - snd.x*y;
+		betta = fst.x*y - x*fst.y;
+	} else if ((denominator = fst.y*snd.z - snd.y*fst.z) != 0) {
+		alpha = y*snd.z - snd.y*z;
+		betta = fst.y*z - y*fst.z;
+	} else {
+		denominator = fst.x*snd.z - snd.x*fst.z;
+		assert(denominator != 0);
+		alpha = x*snd.z - snd.x*z;
+		betta = fst.x*z - x*fst.z;
+	}
+	return {alpha / denominator, betta / denominator};
 }
 
 Vector Vector::outer_product(const Vector& fst, const Vector& snd)
@@ -87,7 +101,8 @@ std::ostream& operator <<(std::ostream& os, const Vector& vec)
 bool Triangle::valid() const
 {
 	return a.valid() && b.valid() && c.valid()
-		&& a != b && b != c && a != c;
+		&& Vector::outer_product(Vector(a, b), Vector(a, c)) != Vector::null_vector
+		&& b != c;
 }
 
 std::ostream& operator <<(std::ostream& os, const Triangle& trg)
@@ -125,10 +140,25 @@ std::ostream& operator <<(std::ostream& os, const Line& line)
 std::ostream& operator <<(std::ostream& os, const Segment& seg)
 	{ return os << "[" << seg.a << "; " << seg.b << "]"; }
 
+bool operator ==(const Segment& fst, const Segment& snd)
+{
+	if (fst.a == snd.a)
+		return fst.b == snd.b;
+	return fst.a == snd.b && fst.b == snd.a;
+}
+
 bool Plane::valid() const
 {
 	return a.valid() && b.valid() && c.valid()
 		&& a != b && b != c && a != c;
+}
+
+bool Plane::contains(const Line& line) const
+{
+	Vector p(a, b);
+	Vector q(a, c);
+	return (Vector::mixed_product(p, q, Vector(line.a, line.b)) == 0)
+		&& (Vector::mixed_product(p, q, Vector(a, line.a)) == 0);
 }
 
 Vector Plane::normal() const
@@ -147,7 +177,7 @@ Vector vdistance(const Point& pnt, const Plane& plane)
 	Vector n = Vector::outer_product(a, b);
 	Vector l = Vector(pnt, plane.a);
 
-	return Vector::mixed_product(a, b, l) / Vector::mixed_product(a, b, n) * n;
+	return Vector::mixed_product(a, b, l) / Vector::inner_product(n, n) * n;
 }
 
 std::variant<EmptySet, Line, Plane>
@@ -178,22 +208,53 @@ intersection(const Plane& fst, const Plane& snd)
 }
 
 std::variant<EmptySet, Point, Segment>
-intersection(const Line& line, const Triangle& trg) // not implemented
+intersection(const Line& line, const Triangle& trg)
 {
-	// std::variant<EmptySet, Point, Segment> intrscts[] = {
-	// 	intersection(line, Segment(trg.a, trg.b)),
-	// 	intersection(line, Segment(trg.b, trg.c)),
-	// 	intersection(line, Segment(trg.c, trg.a)),
-	// };
-	// for (auto& intrsct : intrscts)
-	// 	if (std::holds_alternative<Segment>(intrsct))
-	// 		return std::get<Segment>(intrsct);
+	//std::cout << ">::: intersection(line, trg): " << line << " and " << trg << std::endl;
+	Vector p = Vector(trg.a, trg.b);
+	Vector q = Vector(trg.a, trg.c);
+	Vector delta = Vector(trg.a, line.a); // Вектор из точки треугольника в точку на прямой 
+	Vector linedir = Vector(line.a, line.b);
+	Float denominator = Vector::mixed_product(linedir, q, p);
+	
+	//std::cout << ">::: denom = " << denominator << std::endl;
+	if (denominator == 0) { // Прямая параллельна плоскости треугольника или лежит в ней
+		//std::cout << ">::: (delta, p, q) = " << Vector::mixed_product(delta, p, q) << std::endl;
+		if (Vector::mixed_product(delta, p, q) == 0) { // Прямая лежит в плоскости треугольника
+			Segment trg_sides[] = {{trg.a, trg.b}, {trg.b, trg.c}, {trg.c, trg.a}};
+			std::vector<Point> intrsctn_points;
 
-	// std::vector<Point> points;
-	// for (auto& intrsct : intrscts)
-	// 	if (std::holds_alternative<Point>(intrsct))
-	// 		points.push_back(std::get<Point>(intrsct));
-	// auto it_last = delete_repeats(points);
+			for (auto& side: trg_sides) {
+				auto intrsctn = intersection(line, side);
+				//std::cout << ">::: variant index = " << intrsctn.index() << std::endl;
+				if (std::holds_alternative<Segment>(intrsctn))
+					return side; // пересечение по целой стороне
+				else if (std::holds_alternative<Point>(intrsctn)) {
+					Point pnt = std::get<Point>(intrsctn);
+					if (std::find(intrsctn_points.begin(), intrsctn_points.end(), pnt)
+						== intrsctn_points.end())
+						intrsctn_points.push_back(pnt);
+				}
+			}
+			assert(intrsctn_points.size() <= 2);
+			if (intrsctn_points.size() == 1)
+				return intrsctn_points.front();
+			if (intrsctn_points.size() == 2)
+				return Segment(intrsctn_points.front(), intrsctn_points.back());
+		}
+		/* Прямая лежит в другой плоскости или в той же, но точек пересечения нет */
+		return EmptySet();
+	}
+	/* Прямая пересекает плоскость треугольника в некоторой точке */
+	/* Эта часть алгоритма взята из Geometric Tools for Computer Graphics раздел 11.2 */
+	/* u, v, w - балицентрические координаты
+	 * t - коэфф. в уравнении прямой в виде r = line.a + t * linedir */
+	Float t = Vector::mixed_product(delta, p, q) / denominator;
+	Float u = Vector::mixed_product(linedir, q, delta) / denominator;
+	Float v = Vector::mixed_product(delta, p, linedir) / denominator;
+	Float w = 1 - u - v;
+	if (0 <= u && u <= 1 && 0 <= v && v <= 1 && 0 <= w && w <= 1) // Пересечение есть
+		return Point(Vector(Point::null_point, line.a) + t * linedir);
 	return EmptySet();
 }
 
@@ -246,14 +307,19 @@ intersection(const Segment& fst, const Segment& snd)
 std::variant<EmptySet, Point, Segment>
 intersection(const Line& line, const Segment& seg)
 {
+	//std::cout << ">::: intersection(line, seg): " << line << " and " << seg << std::endl;
 	auto lines_intersection = intersection(line, Line(seg));
+	//std::cout << ">::: - idx = " << lines_intersection.index() << std::endl;
 	if (std::holds_alternative<EmptySet>(lines_intersection))
 		return EmptySet();
 	if (std::holds_alternative<Line>(lines_intersection))
 		return seg;
 	Point pnt = std::get<Point>(lines_intersection);
-	if (seg.contains(pnt))
+	//std::cout << ">::: - pnt = " << pnt << std::endl;
+	if (seg.contains(pnt)) {
+	//	std::cout << ">::: -contains\n";
 		return pnt;
+	}
 	return EmptySet();
 }
 
@@ -276,19 +342,36 @@ intersection(const Line& fst, const Line& snd)
 
 bool intersected(const Triangle& fst, const Triangle& snd)
 {
-	Plane plane(fst);
-	Vector r1 = vdistance(snd.a, plane);
-	Vector r2 = vdistance(snd.b, plane);
-	Vector r3 = vdistance(snd.c, plane);
-	if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0)
-		return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
+	Plane plane1(fst);
 	Plane plane2(snd);
+	//std::cout << ">::: " << fst << " and  " << snd << std::endl;
+	{
+		Vector r1 = vdistance(snd.a, plane1);
+		Vector r2 = vdistance(snd.b, plane1);
+		Vector r3 = vdistance(snd.c, plane1);
+		if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0) {
+		//	std::cout << ">::: all on one halfplane 1\n";
+			return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
+		}
+	}
+	{
+		Vector r1 = vdistance(fst.a, plane2);
+		Vector r2 = vdistance(fst.b, plane2);
+		Vector r3 = vdistance(fst.c, plane2);
+		if (Vector::inner_product(r1, r2) > 0 && Vector::inner_product(r2, r3) > 0) {
+		//	std::cout << ">::: all on one halfplane 2\n";
+			return false; // Все вершины второго треугольника расположены по одну сторону от плоскости первого
+		}
+	}
 
 	try {
 
-	auto line = std::get<Line>(intersection(plane, plane2));
+	auto line = std::get<Line>(intersection(plane1, plane2));
+	//std::cout << ">::: line found: " << line << std::endl;
 	Segment s1 = std::get<Segment>(intersection(line, fst));
+	//std::cout << ">::: seg1 found: " << s1 << std::endl;
 	Segment s2 = std::get<Segment>(intersection(line, snd));
+	//std::cout << ">::: seg2 found: " << s2 << std::endl;
 
 	auto segment_intersection = intersection(s1, s2);
 	return (std::holds_alternative<EmptySet>(segment_intersection))

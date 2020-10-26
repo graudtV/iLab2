@@ -94,7 +94,7 @@ struct Vector {
 		{ return std::sqrt(x*x + y*y + z*z); }
 
 	/* Разложения по базису */
-	Float decompose(const Vector& basis) const;
+ 	Float decompose(const Vector& basis) const;
 	std::array<Float, 2> decompose(const Vector& fst, const Vector& snd) const;
 
 	Vector operator /(Float value) const
@@ -145,7 +145,9 @@ struct Segment {
 };
 
 std::ostream& operator <<(std::ostream& os, const Segment& seg);
-
+bool operator ==(const Segment& fst, const Segment& snd);
+inline bool operator !=(const Segment& fst, const Segment& snd)
+	{ return !(fst == snd); }
 
 struct Line {
 	Point a, b;
@@ -170,6 +172,7 @@ struct Plane {
 	explicit Plane(const Triangle& trg) :
 		a(trg.a), b(trg.b), c(trg.c) {}
 	bool valid() const;
+	bool contains(const Line& line) const;
 	Vector normal() const;
 
 	static const Plane oxy, oxz, oyz;
