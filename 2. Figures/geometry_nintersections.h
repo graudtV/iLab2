@@ -49,11 +49,6 @@ template <class InputIt,
 >
 int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int)
 {
-	// std::cout << ">::: nintersections(trgs[]) :\n";
-	// for(auto it = trgs_fst; it != trgs_last; ++it)
-	// 	std::cout << ">::: -- " << *it << std::endl;
-	// std::cout << std::endl;
-
 	if (trgs_fst == trgs_last || std::next(trgs_fst) == trgs_last) // Нужно хотя бы 2 треугольника
 		return 0;
 
@@ -92,20 +87,11 @@ template <class InputIt1, class InputIt2>
 int ncrossintersections_helper(InputIt1 a_fst, InputIt1 a_last,
 	InputIt2 b_fst, InputIt2 b_last, ...)
 {
-	// std::cout << ">::: ncrossintersections(trgs[], trgs[]) :\n";
-	// for(auto it = a_fst; it != a_last; ++it)
-	// 	std::cout << ">::: -- " << *it << std::endl;
-	// printf(">::: --- and ---\n");
-	// for(auto it = b_fst; it != b_last; ++it)
-	// 	std::cout << ">::: -- " << *it << std::endl;
-
 	int counter = 0;
 	for(auto it1 = a_fst; it1 != a_last; ++it1)
 		for (auto it2 = b_fst; it2 != b_last; ++it2)
 			if (intersected(*it1, *it2))
 				++counter;
-	// std::cout << ">::: returning " << counter << std::endl;
-	// std::cout << std::endl;
 	return counter;
 }
 

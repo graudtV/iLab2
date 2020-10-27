@@ -210,23 +210,19 @@ intersection(const Plane& fst, const Plane& snd)
 std::variant<EmptySet, Point, Segment>
 intersection(const Line& line, const Triangle& trg)
 {
-	//std::cout << ">::: intersection(line, trg): " << line << " and " << trg << std::endl;
 	Vector p = Vector(trg.a, trg.b);
 	Vector q = Vector(trg.a, trg.c);
 	Vector delta = Vector(trg.a, line.a); // Вектор из точки треугольника в точку на прямой 
 	Vector linedir = Vector(line.a, line.b);
 	Float denominator = Vector::mixed_product(linedir, q, p);
 	
-	//std::cout << ">::: denom = " << denominator << std::endl;
-	if (denominator == 0) { // Прямая параллельна плоскости треугольника или лежит в ней
-		//std::cout << ">::: (delta, p, q) = " << Vector::mixed_product(delta, p, q) << std::endl;
+	if (denominator == 0) { // Прямая параллельна плоскости треугольника или лежит в не
 		if (Vector::mixed_product(delta, p, q) == 0) { // Прямая лежит в плоскости треугольника
 			Segment trg_sides[] = {{trg.a, trg.b}, {trg.b, trg.c}, {trg.c, trg.a}};
 			std::vector<Point> intrsctn_points;
 
 			for (auto& side: trg_sides) {
 				auto intrsctn = intersection(line, side);
-				//std::cout << ">::: variant index = " << intrsctn.index() << std::endl;
 				if (std::holds_alternative<Segment>(intrsctn))
 					return side; // пересечение по целой стороне
 				else if (std::holds_alternative<Point>(intrsctn)) {
@@ -323,19 +319,14 @@ intersection(const Segment& fst, const Segment& snd)
 std::variant<EmptySet, Point, Segment>
 intersection(const Line& line, const Segment& seg)
 {
-	//std::cout << ">::: intersection(line, seg): " << line << " and " << seg << std::endl;
 	auto lines_intersection = intersection(line, Line(seg));
-	//std::cout << ">::: - idx = " << lines_intersection.index() << std::endl;
 	if (std::holds_alternative<EmptySet>(lines_intersection))
 		return EmptySet();
 	if (std::holds_alternative<Line>(lines_intersection))
 		return seg;
 	Point pnt = std::get<Point>(lines_intersection);
-	//std::cout << ">::: - pnt = " << pnt << std::endl;
-	if (seg.contains(pnt)) {
-	//	std::cout << ">::: -contains\n";
+	if (seg.contains(pnt))
 		return pnt;
-	}
 	return EmptySet();
 }
 
