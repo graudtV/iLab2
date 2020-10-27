@@ -18,17 +18,18 @@ int nintersections_helper(InputIt figure_fst, InputIt figure_last, ...)
 	return counter;
 }
 
-/* Возвращает 0, если which имеет общие точки с плоскостью base,
- * 1 - если все точки лежат в полуплоскости, в которую указывает
- * нормаль плоскости base,
- * -1 - */
-inline int halfplane_detector(const Triangle& base, const Triangle& which)
+/*  returns 0 - если trg имеет общие точки с плоскостью base
+ *  returns 1 - если все точки trg лежат в полуплоскости, в которую указывает
+ * нормаль плоскости base
+ *  returns -1 - все точки лежат в полуплоскости, противоположной
+ * той, на которую указывает нормаль base */
+inline int halfplane_detector(const Triangle& base, const Triangle& trg)
 {
 	Plane plane(base);
 	Vector n = plane.normal();
-	Float a = Vector::inner_product(n, vdistance(which.a, plane));
-	Float b = Vector::inner_product(n, vdistance(which.b, plane));
-	Float c = Vector::inner_product(n, vdistance(which.c, plane));
+	Float a = Vector::inner_product(n, vdistance(trg.a, plane));
+	Float b = Vector::inner_product(n, vdistance(trg.b, plane));
+	Float c = Vector::inner_product(n, vdistance(trg.c, plane));
 	if (a > 0 && b > 0 && c > 0)
 		return -1;
 	if (a < 0 && b < 0 && c < 0)

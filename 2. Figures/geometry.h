@@ -61,7 +61,12 @@ public:
 	static float float_tolerance;
 private:
 	float m_val;
+
+	friend std::istream& operator >>(std::istream& is, Float& f)
+		{ return is >> f.m_val; }
 };
+
+
 
 struct Vector;
 

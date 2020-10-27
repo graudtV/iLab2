@@ -287,7 +287,7 @@ intersection(const Segment& fst, const Segment& snd)
 	if (std::holds_alternative<EmptySet>(lines_intersection))
 		return EmptySet();
 
-	/* Два отрезка лежат на одной прямой */
+	/*  Два отрезка лежат на одной прямой */
 	/*  Раскладываем вектора из начальной точки прямой в каждый из концов
 	 * отрезка по базису из направляющего вектора прямой */
 	Line line = std::get<Line>(lines_intersection);

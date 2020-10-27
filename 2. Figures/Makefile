@@ -21,7 +21,10 @@ clean:
 bin/example: example.cpp $(GEOMETRY_FILES)
 	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
 
-bin/unit_test: unit_test.cpp $(GEOMETRY_FILES)
+bin/unit_test: test/unit_test.cpp $(GEOMETRY_FILES)
+	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
+
+bin/test_nintersections_trg_trg: test/test_nintersections_trg_trg.cpp $(GEOMETRY_FILES)
 	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
 
 obj/geometry.o: geometry.cpp geometry.h

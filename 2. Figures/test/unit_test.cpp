@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
-#include "../catch.hpp"
-#include "geometry.h"
+#include "../../catch.hpp"
+#include "../geometry.h"
 #include <cmath>
 
 auto& null_point = Geometry::Point::null_point;
