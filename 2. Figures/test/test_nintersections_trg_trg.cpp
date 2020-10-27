@@ -7,10 +7,6 @@ std::istream&
 operator >>(std::istream& is, Geometry::Point& pnt)
 	{ return is >> pnt.x >> pnt.y >> pnt.z; }
 
-std::istream&
-operator >>(std::istream& is, Geometry::Triangle& trg)
-	{ return is >> trg.a >> trg.b >> trg.c; }
-
 }
 
 int main()
@@ -21,11 +17,14 @@ int main()
 	std::vector<Geometry::Triangle> trgs;
 	trgs.reserve(ntriangles);
 
-	for (int i = 0; i < ntriangles; ++i)
-		std::cin >> trgs[i];
+	for (int i = 0; i < ntriangles; ++i) {
+		Geometry::Point a, b, c;
+		std::cin >> a >> b >> c;
+		trgs.push_back({a, b, c});
+	}
 
-	for (auto& trg : trgs)
-		std::cout << trg << std::endl;
+	std::cout << nintersections(trgs.begin(), trgs.end()) << std::endl;
+
 
 	return 0;
 }

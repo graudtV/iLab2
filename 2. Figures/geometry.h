@@ -73,6 +73,7 @@ struct Vector;
 struct Point {
 	Float x, y, z;
 
+	Point() : x(0), y(0), z(0) {}
 	Point(Float xx, Float yy, Float zz) : x(xx), y(yy), z(zz) {}
 	explicit Point(const Vector& vec);
 	bool valid() const;

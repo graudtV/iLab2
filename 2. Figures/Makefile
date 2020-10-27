@@ -4,7 +4,7 @@ GEOMETRY_HEADERS=geometry.h geometry_nintersections.h other.h
 GEOMETRY_OBJS=obj/geometry.o
 GEOMETRY_FILES=$(GEOMETRY_HEADERS) $(GEOMETRY_OBJS)
 
-all: init run-example
+all: init test
 
 init:
 	mkdir -p obj bin
@@ -12,8 +12,10 @@ init:
 run-example: bin/example
 	./bin/example
 
-test: bin/unit_test
+test: bin/unit_test bin/test_nintersections_trg_trg
 	bin/unit_test
+	bin/test_nintersections_trg_trg < test/data/1.input | diff - test/data/1.output --brief
+	bin/test_nintersections_trg_trg < test/data/2.input | diff - test/data/2.output --brief
 
 clean:
 	rm -rf obj bin
