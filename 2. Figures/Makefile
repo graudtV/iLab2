@@ -12,13 +12,33 @@ init:
 run-example: bin/example
 	./bin/example
 
-test: bin/unit_test bin/test_nintersections_trg_trg
+test: bin/unit_test bin/test_nintersections_trg_trg test/data/generated
 	bin/unit_test
-	bin/test_nintersections_trg_trg < test/data/1.input | diff - test/data/1.output --brief
-	bin/test_nintersections_trg_trg < test/data/2.input | diff - test/data/2.output --brief
+	$(call run_test,test/data/1.input,test/data/1.output)
+	$(call run_test,test/data/2.input,test/data/2.output)
+	$(call run_test,test/data/generated/10.input,test/data/generated/10.output)
+	$(call run_test,test/data/generated/100.input,test/data/generated/100.output)
+	$(call run_test,test/data/generated/2000.input,test/data/generated/2000.output)
+
+test/data/generated: bin/trggen
+	mkdir -p test/data/generated
+	$(call generate_test_data,10)
+	$(call generate_test_data,100)
+	$(call generate_test_data,1000)
+	$(call generate_test_data,2000)
+
+
+define generate_test_data
+	./bin/trggen $(1) > 'test/data/generated/$(1).input'
+	bin/test_nintersections_trg_trg -b < 'test/data/generated/$(1).input' > 'test/data/generated/$(1).output'
+endef
+
+define run_test
+	bin/test_nintersections_trg_trg < $(1) | diff - $(2) --brief
+endef
 
 clean:
-	rm -rf obj bin
+	rm -rf obj bin test/data/generated
 
 bin/example: example.cpp $(GEOMETRY_FILES)
 	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
@@ -27,6 +47,9 @@ bin/unit_test: test/unit_test.cpp $(GEOMETRY_FILES)
 	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
 
 bin/test_nintersections_trg_trg: test/test_nintersections_trg_trg.cpp $(GEOMETRY_FILES)
+	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
+
+bin/trggen: test/trggen.cpp $(GEOMETRY_FILES)
 	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
 
 obj/geometry.o: geometry.cpp geometry.h
