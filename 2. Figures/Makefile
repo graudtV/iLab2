@@ -14,26 +14,26 @@ run-example: bin/example
 
 test: bin/unit_test bin/test_nintersections_trg_trg test/data/generated
 	bin/unit_test
-	$(call run_test,test/data/1.input,test/data/1.output)
-	$(call run_test,test/data/2.input,test/data/2.output)
-	$(call run_test,test/data/generated/10.input,test/data/generated/10.output)
-	$(call run_test,test/data/generated/100.input,test/data/generated/100.output)
-	$(call run_test,test/data/generated/2000.input,test/data/generated/2000.output)
+	$(call run-test,test/data/1.input,test/data/1.output)
+	$(call run-test,test/data/2.input,test/data/2.output)
+	$(call run-test,test/data/generated/10.input,test/data/generated/10.output)
+	$(call run-test,test/data/generated/100.input,test/data/generated/100.output)
+	$(call run-test,test/data/generated/2000.input,test/data/generated/2000.output)
 
 test/data/generated: bin/trggen
 	mkdir -p test/data/generated
-	$(call generate_test_data,10)
-	$(call generate_test_data,100)
-	$(call generate_test_data,1000)
-	$(call generate_test_data,2000)
+	$(call generate-test-data,10)
+	$(call generate-test-data,100)
+	$(call generate-test-data,1000)
+	$(call generate-test-data,2000)
 
 
-define generate_test_data
+define generate-test-data
 	./bin/trggen $(1) > 'test/data/generated/$(1).input'
 	bin/test_nintersections_trg_trg -b < 'test/data/generated/$(1).input' > 'test/data/generated/$(1).output'
 endef
 
-define run_test
+define run-test
 	bin/test_nintersections_trg_trg < $(1) | diff - $(2) --brief
 endef
 
