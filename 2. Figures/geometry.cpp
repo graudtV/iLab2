@@ -1,5 +1,5 @@
 #include "geometry.h"
-#include <cmath>
+#include <vector>
 #include <sstream>
 #include <algorithm>
 #include <cassert>

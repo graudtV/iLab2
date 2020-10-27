@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <cmath>
-#include <vector>
+#include <array>
 #include <variant>
 #include <type_traits>
 
@@ -56,7 +56,7 @@ public:
 	template <class T> friend bool operator > (const T& fst, Float snd) { return snd < fst; }
 	template <class T> friend bool operator >=(const T& fst, Float snd) { return snd >= fst; }
 
-	bool valid() const { return isnormal(m_val) || m_val == 0; }
+	bool valid() const { return std::isnormal(m_val) || m_val == 0; }
 
 	static float float_tolerance;
 private:
