@@ -9,7 +9,7 @@
 
 namespace Geometry {
 
-/* Сравнивает float с учетом float_tolerance */
+/* Compares float according to float_tolerance */
 class Float {
 public:
 	Float() {}
@@ -99,7 +99,7 @@ struct Vector {
 	Float module() const
 		{ return std::sqrt(x*x + y*y + z*z); }
 
-	/* Разложения по базису */
+	/* Decompostion into basis */
  	Float decompose(const Vector& basis) const;
 	std::array<Float, 2> decompose(const Vector& fst, const Vector& snd) const;
 
@@ -188,7 +188,7 @@ std::ostream& operator <<(std::ostream& os, const Plane& plane);
 
 struct EmptySet {};
 
-/* Расстояние в виде вектора */
+/* Distance as a vector */
 Vector vdistance(const Point& fst, const Point& snd);
 Vector vdistance(const Point& pnt, const Plane& plane);
 
@@ -222,27 +222,30 @@ bool intersected(const T1& fst, const T2& snd)
 
 } // Geometry namespace end
 
-/* Шаблоны для работы nintersections() */
+/* Some templates needed for nintersections() work */
 #include "geometry_nintersections.h"
 
 namespace Geometry {
 
-/*  Рассчитывает число взаимных пересечений геометрических фигур.
- *  Самопересечение не учитывается, но пересечение двух любых фигур,
- * переданных через различные итераторы, будет учтено, даже
- * если на самом деле эти фигуры равны
- *  InputIt должен указывать на тип фигуры, для которой определена
- * функция bool intersected(*it1, *it2)
- *  Complexity: в худшем случае O(n^2). Для некоторых фигур
- * функция переопределена с менешей алгоритмической сложностью */
+
+/*  Calculates number of mutual intersections of geometric figures.
+ *  Self-intersections are not counted, but if there are two equal figures,
+ * passed by different iterators, the intersection will be taken into
+ * account.
+ *  InputIt must be so, that a function bool intersected(*it1, *it2) is
+ * defined.
+ *  Complexity: O(n^2) in the worst case. For some figures
+ * function could be redefined with better efficiency
+*/
 template <class InputIt>
 int nintersections(InputIt figure_fst, InputIt figure_last)
 	{ return nintersections_helper(figure_fst, figure_last, 0); }
 
-/*  Рассчитывает число пересечений между объектами двух групп
- * геометрических фигур.
- *  Учитываются пересечения только между группами, но не внутри группы
- *  Требования на итераторы аналогичны требованиям в nintersections() */
+/*  Caclulates number of intersections between two groups
+ * of geometric objects
+ *  Intesection between figures in on group is not taken into account
+ * (only between groups)
+ *  InputIt must satisfy the same criteria as in nintersections() */
 template <class InputIt1, class InputIt2>
 int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 	InputIt2 b_fst, InputIt2 b_last)

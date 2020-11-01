@@ -22,8 +22,8 @@ bool Point::valid() const
 Point operator +(const Point& pnt, const Vector& vec)
 	{ return Point(pnt.x + vec.x, pnt.y + vec.y, pnt.z + vec.z); }
 
-/*  Точки равны, если их координаты равны. Координаты сравниваются
- * по правилам класса Geometry::Float */
+/*  Points are equal if their coordinates are equal. Coordinates
+ * are being compared by Geometry::Float rules */
 bool operator ==(const Point& fst, const Point& snd)
 	{ return fst.x == snd.x && fst.y == snd.y && fst.z == snd.z; }
 
@@ -183,16 +183,16 @@ Vector vdistance(const Point& pnt, const Plane& plane)
 std::variant<EmptySet, Line, Plane>
 intersection(const Plane& fst, const Plane& snd)
 {
-	/* Алгоритм взят из Geometric Tools for Computer Graphics раздел 11.5 */
+	/* Algorithm taken from Geometric Tools for Computer Graphics section 11.5 */
 	Vector n1 = fst.normal();
 	Vector n2 = snd.normal();
-	Vector l = Vector::outer_product(n1, n2); // Направляющий вектор прямой
+	Vector l = Vector::outer_product(n1, n2); // line direction vector (направляющий вектор прямой)
 	if (l == Vector::null_vector) {
-		if (Vector::inner_product(Vector(fst.a, snd.a), n1) == 0) // плоскости совпадают
+		if (Vector::inner_product(Vector(fst.a, snd.a), n1) == 0) // planes coincide
 			return Plane(fst);
 		return EmptySet();
 	}
-	/* s1, s2 - числа в уравнении плоскостей в виде (r, n) = s */
+	/* s1, s2 - numbers from plane equation in form (r, n) = s */
 	Float s1 = Vector::inner_product(Vector(Point::null_point, fst.a), n1);
 	Float s2 = Vector::inner_product(Vector(Point::null_point, snd.a), n2);
 	Float n1n2 = Vector::inner_product(n1, n2);
@@ -212,19 +212,19 @@ intersection(const Line& line, const Triangle& trg)
 {
 	Vector p = Vector(trg.a, trg.b);
 	Vector q = Vector(trg.a, trg.c);
-	Vector delta = Vector(trg.a, line.a); // Вектор из точки треугольника в точку на прямой 
+	Vector delta = Vector(trg.a, line.a); // Vector from triangle vertex to point on a plane
 	Vector linedir = Vector(line.a, line.b);
 	Float denominator = Vector::mixed_product(linedir, q, p);
 	
-	if (denominator == 0) { // Прямая параллельна плоскости треугольника или лежит в не
-		if (Vector::mixed_product(delta, p, q) == 0) { // Прямая лежит в плоскости треугольника
+	if (denominator == 0) { // Line is parallel to triangle's plane or lies in it
+		if (Vector::mixed_product(delta, p, q) == 0) { // The line is in triangle's plane
 			Segment trg_sides[] = {{trg.a, trg.b}, {trg.b, trg.c}, {trg.c, trg.a}};
 			std::vector<Point> intrsctn_points;
 
 			for (auto& side: trg_sides) {
 				auto intrsctn = intersection(line, side);
 				if (std::holds_alternative<Segment>(intrsctn))
-					return side; // пересечение по целой стороне
+					return side; // intersection is a whole triangle side
 				else if (std::holds_alternative<Point>(intrsctn)) {
 					Point pnt = std::get<Point>(intrsctn);
 					if (std::find(intrsctn_points.begin(), intrsctn_points.end(), pnt)
@@ -238,13 +238,14 @@ intersection(const Line& line, const Triangle& trg)
 			if (intrsctn_points.size() == 2)
 				return Segment(intrsctn_points.front(), intrsctn_points.back());
 		}
-		/* Прямая лежит в другой плоскости или в той же, но точек пересечения нет */
+		/* Line lies in another plane or in the same one, but without any intersection points */
 		return EmptySet();
 	}
-	/* Прямая пересекает плоскость треугольника в некоторой точке */
-	/* Эта часть алгоритма взята из Geometric Tools for Computer Graphics раздел 11.2 */
-	/* u, v, w - балицентрические координаты
-	 * t - коэфф. в уравнении прямой в виде r = line.a + t * linedir */
+	/* Line intersects triangle's plane in some point */
+	/* This part of algorithm is taken from Geometric Tools for Computer
+	 *  Graphics section 11.2 */
+	/* u, v, w - balicentric coordinates
+	 * t - coeffs in line equation in form r = line.a + t * linedir */
 	Float t = Vector::mixed_product(delta, p, q) / denominator;
 	Float u = Vector::mixed_product(linedir, q, delta) / denominator;
 	Float v = Vector::mixed_product(delta, p, linedir) / denominator;
@@ -283,9 +284,9 @@ intersection(const Segment& fst, const Segment& snd)
 	if (std::holds_alternative<EmptySet>(lines_intersection))
 		return EmptySet();
 
-	/*  Два отрезка лежат на одной прямой */
-	/*  Раскладываем вектора из начальной точки прямой в каждый из концов
-	 * отрезка по базису из направляющего вектора прямой */
+	/*  Both segments are on one line */
+	/*  Decomposing vectors from line origin to every of 4 ends of segments
+	 * into basis of line's direction vector */
 	Line line = std::get<Line>(lines_intersection);
 	Vector linedir = line.direction();
 	Point line_origin = line.a;
@@ -294,7 +295,8 @@ intersection(const Segment& fst, const Segment& snd)
 	Float b1 = Vector(line_origin, snd.a).decompose(linedir);
 	Float b2 = Vector(line_origin, snd.b).decompose(linedir);
 
-	/* Задача свелась к задаче на прямой. a1,...,a4 - координаты на прямой */
+	/* Problem is reduced to the same problem, but on line
+	 * a1,...,a4 - coordinates on a line */
 	if (a1 > a2)
 		std::swap(a1, a2);
 	if (b1 > b2)
@@ -303,7 +305,7 @@ intersection(const Segment& fst, const Segment& snd)
 		std::swap(a1, b1);
 		std::swap(a2, b2);
 	}
-	/* Итого a1 <= a2, a1 <= b1 <= b2;
+	/* Now a1 <= a2, a1 <= b1 <= b2;
 	 * case1: a1 <= a2 <= b1 <= b2
 	 * case2: a1 <= b1 <= a2 <= b2
 	 * case3: a1 <= b1 <= b2 <= a2 */
@@ -335,12 +337,12 @@ intersection(const Line& fst, const Line& snd)
 {
 	Vector line1_dir = fst.direction();
 	Vector line2_dir = snd.direction();
-	Vector d = Vector(fst.a, snd.a); // Из точки одной прямой в точку другой
+	Vector d = Vector(fst.a, snd.a); // from point on the line to point of another one
 	if (Vector::mixed_product(line1_dir, line2_dir, d) != 0)
-		return EmptySet(); // Скрещивающиеся прямые
+		return EmptySet(); // Crossing lines (скрещивающиеся прямые)
 	if (Vector::collinear(line1_dir, line2_dir)) {
 		if (Vector::collinear(d, line1_dir))
-			return fst; // <=> snd - прямые совпадают
+			return fst; // <=> snd - coincident lines
 		return EmptySet();
 	}
 	auto koeffs = d.decompose(line1_dir, line2_dir);

@@ -5,7 +5,7 @@
 
 namespace Geometry {
 
-/* Обобщенный алгоритм расчета числа пересечений (См. nintersections())
+/* Generic algorithm for number of intersections (see nintersections())
  * Complexity: O(n^2) */
 template <class InputIt>
 int nintersections_helper(InputIt figure_fst, InputIt figure_last, ...)
@@ -18,11 +18,11 @@ int nintersections_helper(InputIt figure_fst, InputIt figure_last, ...)
 	return counter;
 }
 
-/*  returns 0 - если trg имеет общие точки с плоскостью base
- *  returns 1 - если все точки trg лежат в полуплоскости, в которую указывает
- * нормаль плоскости base
- *  returns -1 - все точки лежат в полуплоскости, противоположной
- * той, на которую указывает нормаль base */
+/*  returns 0 - if trg has common points with plane base
+ *  returns 1 - if all of trg vertices are in a halfplane, which
+ * is pointed by base normal
+ *  returns -1 - if all of trg vertices are in a halfplane,
+ * which is opposit to the one pointed by base plane normal */
 inline int halfplane_detector(const Triangle& base, const Triangle& trg)
 {
 	Plane plane(base);
@@ -38,8 +38,9 @@ inline int halfplane_detector(const Triangle& base, const Triangle& trg)
 }
 
 
-/* Подсчет числа пересечений треугольников (См. nintersections())
- * Complexity: O(nlog(n)) в среднем, O(n^2) в худшем случае */
+/*  Algorithm for counting number of intersections between
+ * triangles. More effective than generic algorithm (see nintersections())
+ *  Complexity: O(nlog(n)) в среднем, O(n^2) в худшем случае */
 template <class InputIt,
 	typename std::enable_if<
 		std::is_same<
@@ -49,7 +50,7 @@ template <class InputIt,
 >
 int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int)
 {
-	if (trgs_fst == trgs_last || std::next(trgs_fst) == trgs_last) // Нужно хотя бы 2 треугольника
+	if (trgs_fst == trgs_last || std::next(trgs_fst) == trgs_last) // 2 triangles minimum needed
 		return 0;
 
 	// TODO: choose_base_trg(trgs_fst, trgs_last);
@@ -64,25 +65,25 @@ int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int)
 	 * borders[0] -- borders[1]	-	left halfplane
 	 * borders[1] -- trgs_last	-	right halfplane */
 
-	/*  Если не нашлось треугольников, лежащих целиком слева или справа,
-	 * придется что-то делать самому. Уменьшим число треугольников на 1
-	 * и попробуем снова. В худшем случае будет n^2 */
+	/*  If there is no triangles, which are completely left or completely right,
+	 * we need to do smth, or there will be infinite recursion. So, we decrease
+	 * number of triangles by one and try again. In the worst case complexity is n^2 */
 	if (borders[0] == trgs_last)
 		return ncrossintersections(trgs_fst, fst_after_base, fst_after_base, trgs_last)
 			+ nintersections(fst_after_base, trgs_last);
 
-	return nintersections(borders[0], borders[1]) // среди левых
-		+ nintersections(borders[1], trgs_last) // среди правых
-		+ nintersections(trgs_fst, borders[0]) // среди средних
-		+ ncrossintersections(trgs_fst, borders[0], borders[0], borders[1]) // средние - левые
-		+ ncrossintersections(trgs_fst, borders[0], borders[1], trgs_last); // средние - правые
+	return nintersections(borders[0], borders[1]) // among left
+		+ nintersections(borders[1], trgs_last) // among right
+		+ nintersections(trgs_fst, borders[0]) // among middle
+		+ ncrossintersections(trgs_fst, borders[0], borders[0], borders[1]) // middle - left
+		+ ncrossintersections(trgs_fst, borders[0], borders[1], trgs_last); // middle - right
 }
 
 
 
-/* Обобщенный алгоритм расчета числа пересечений между группами
- * (См. ncrossintersections())
- * Complexity: O(n*m) */
+/*  Generic algorithm for counting number of intersections between
+ * groups of geometric objects (see ncrossintersections())
+ *  Complexity: O(n*m) */
 template <class InputIt1, class InputIt2>
 int ncrossintersections_helper(InputIt1 a_fst, InputIt1 a_last,
 	InputIt2 b_fst, InputIt2 b_last, ...)
