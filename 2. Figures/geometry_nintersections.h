@@ -2,13 +2,14 @@
 #define GEOMETRY_NINTERSECTIONS_H_
 
 #include "other.h"
+#include <iterator>
 
 namespace Geometry {
 
 /* Generic algorithm for number of intersections (see nintersections())
  * Complexity: O(n^2) */
-template <class InputIt>
-int nintersections_helper(InputIt figure_fst, InputIt figure_last, ...)
+template <class BidirIt>
+int nintersections_helper(BidirIt figure_fst, BidirIt figure_last, ...)
 {
 	int counter = 0;
 	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
@@ -40,15 +41,15 @@ inline int halfplane_detector(const Triangle& base, const Triangle& trg)
 
 /*  Algorithm for counting number of intersections between
  * triangles. More effective than generic algorithm (see nintersections())
- *  Complexity: O(nlog(n)) в среднем, O(n^2) в худшем случае */
-template <class InputIt,
+ *  Complexity: O(nlog(n)) on average, O(n^2) in the worst case */
+template <class BidirIt,
 	typename std::enable_if<
 		std::is_same<
-			typename std::iterator_traits<InputIt>::value_type,
-			Triangle>::value,
-		int>::type = 0
+			typename std::iterator_traits<BidirIt>::value_type,
+			Triangle>::value
+		, int>::type = 0
 >
-int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int)
+int nintersections_helper(BidirIt trgs_fst, BidirIt trgs_last, int)
 {
 	if (trgs_fst == trgs_last || std::next(trgs_fst) == trgs_last) // 2 triangles minimum needed
 		return 0;
@@ -84,9 +85,9 @@ int nintersections_helper(InputIt trgs_fst, InputIt trgs_last, int)
 /*  Generic algorithm for counting number of intersections between
  * groups of geometric objects (see ncrossintersections())
  *  Complexity: O(n*m) */
-template <class InputIt1, class InputIt2>
-int ncrossintersections_helper(InputIt1 a_fst, InputIt1 a_last,
-	InputIt2 b_fst, InputIt2 b_last, ...)
+template <class BidirIt1, class BidirIt2>
+int ncrossintersections_helper(BidirIt1 a_fst, BidirIt1 a_last,
+	BidirIt2 b_fst, BidirIt2 b_last, ...)
 {
 	int counter = 0;
 	for(auto it1 = a_fst; it1 != a_last; ++it1)

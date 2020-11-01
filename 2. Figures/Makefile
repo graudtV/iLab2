@@ -1,8 +1,8 @@
 .PHONY: all clean run-example test
-CFLAGS=-std=c++17
 GEOMETRY_HEADERS=geometry.h geometry_nintersections.h other.h
 GEOMETRY_OBJS=obj/geometry.o
 GEOMETRY_FILES=$(GEOMETRY_HEADERS) $(GEOMETRY_OBJS)
+CONST_FLAGS=-std=c++17
 
 all: init test
 
@@ -40,17 +40,8 @@ endef
 clean:
 	rm -rf obj bin test/data/generated
 
-bin/example: example.cpp $(GEOMETRY_FILES)
-	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
-
-bin/unit_test: test/unit_test.cpp $(GEOMETRY_FILES)
-	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
-
-bin/test_nintersections_trg_trg: test/test_nintersections_trg_trg.cpp $(GEOMETRY_FILES)
-	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
-
-bin/trggen: test/trggen.cpp $(GEOMETRY_FILES)
-	$(CXX) $(CFLAGS) $< $(GEOMETRY_OBJS) -o $@
+bin/%: test/%.cpp $(GEOMETRY_FILES)
+	$(CXX) $(CONST_FLAGS) $(CXXFLAGS) $< $(GEOMETRY_OBJS) -o $@
 
 obj/geometry.o: geometry.cpp geometry.h
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CONST_FLAGS) $(CXXFLAGS) -c $< -o $@
