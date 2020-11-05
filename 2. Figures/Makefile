@@ -18,6 +18,7 @@ test: bin/unit_test bin/test_nintersections_trg_trg test/data/generated
 	bin/unit_test
 	$(call run-test,test/data/1.input,test/data/1.output)
 	$(call run-test,test/data/2.input,test/data/2.output)
+	$(call run-test,test/data/3.input,test/data/3.output)
 	$(call run-test,test/data/generated/10.input,test/data/generated/10.output)
 	$(call run-test,test/data/generated/100.input,test/data/generated/100.output)
 	$(call run-test,test/data/generated/2000.input,test/data/generated/2000.output)
