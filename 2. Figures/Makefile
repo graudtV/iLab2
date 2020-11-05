@@ -1,8 +1,10 @@
-.PHONY: all clean run-example test
 GEOMETRY_HEADERS=geometry.h geometry_nintersections.h other.h
-GEOMETRY_OBJS=obj/geometry.o
+GEOMETRY_OBJS=obj/geometry.o obj/geometry_nintersections.o
 GEOMETRY_FILES=$(GEOMETRY_HEADERS) $(GEOMETRY_OBJS)
 CONST_FLAGS=-std=c++17
+
+.SECONDARY: $(GEOMETRY_OBJS)
+.PHONY: all clean run-example test
 
 all: init test
 
@@ -43,5 +45,5 @@ clean:
 bin/%: test/%.cpp $(GEOMETRY_FILES)
 	$(CXX) $(CONST_FLAGS) $(CXXFLAGS) $< $(GEOMETRY_OBJS) -o $@
 
-obj/geometry.o: geometry.cpp geometry.h
+obj/%.o: %.cpp $(GEOMETRY_HEADERS)
 	$(CXX) $(CONST_FLAGS) $(CXXFLAGS) -c $< -o $@

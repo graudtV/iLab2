@@ -1,6 +1,8 @@
 #ifndef OTHER_H_
 #define OTHER_H_
 
+#include <array>
+
 namespace other {
 
 /*  Swaps elements in container in such way that on the "left side"
@@ -11,7 +13,7 @@ namespace other {
 */
 template <class BidirIt, class Predicate>
 BidirIt split(BidirIt fst, BidirIt last, Predicate pred)
-{
+{ 
 	if (fst == last)
 		return last;
 	--last;

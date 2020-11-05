@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\t-b\t--\tuse benchmark nintersections() (Complexity O(n^2))\n");
 			fprintf(stderr, "\tinput format (from stdin): ntriangles trg1.pnt1.x trg1.pnt1.y"
 				" trg1.pnt1.z trg1.pnt2.x ...\n");
+			fprintf(stderr, "\toutput: number of intersections\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
 	}
 
 	std::cout << ((opt_benchmark)
-			? nintersections_helper(trgs.begin(), trgs.end(), 0, 0)
+			? nintersections_benchmark(trgs.begin(), trgs.end())
 			: nintersections(trgs.begin(), trgs.end()))
 		<< std::endl;
 

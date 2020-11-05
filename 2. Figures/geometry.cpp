@@ -349,6 +349,14 @@ intersection(const Line& fst, const Line& snd)
 	return fst.a + koeffs[0] * line1_dir; // Point
 }
 
+std::variant<EmptySet, Point>
+intersection(const Point& fst, const Point& snd)
+{
+	if (fst == snd)
+		return fst; // fst == snd
+	return EmptySet();
+}
+
 bool intersected(const Triangle& fst, const Triangle& snd)
 {
 	/*  Просто и надежно, легко справляется со случаями, когда оба

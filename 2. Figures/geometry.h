@@ -212,49 +212,46 @@ intersection(const Line& line, const Segment& seg);
 std::variant<EmptySet, Point, Line>
 intersection(const Line& fst, const Line& snd);
 
-template <class T1, class T2>
-Float distance(const T1& fst, const T2& snd)
+std::variant<EmptySet, Point>
+intersection(const Point& fst, const Point& snd);
+
+template <class Figure1, class Figure2>
+Float distance(const Figure1& fst, const Figure2& snd)
 	{ return vdistance(fst, snd).module(); }
 
-template <class T1, class T2>
-bool intersected(const T1& fst, const T2& snd)
+template <class Figure1, class Figure2>
+bool intersected(const Figure1& fst, const Figure2& snd)
 	{ return !std::holds_alternative<EmptySet>(intersection(fst, snd)); }
-
-} // Geometry namespace end
-
-/* Some templates needed for nintersections() work */
-#include "geometry_nintersections.h"
-
-namespace Geometry {
-
 
 /*  Calculates number of mutual intersections of geometric figures.
  *  Self-intersections are not counted, but if there are two equal figures,
  * passed by different iterators, the intersection will be taken into
  * account.
- *  BidirIt must be so, that a function bool intersected(*it1, *it2) is
- * defined.
+ *  InputIt must be so, that a function bool intersected(*it1, *it2) is
+ * defined. Figure must have method valid(), i.e. it->valid() is defined
+ *  
  *  Complexity: O(n^2) in the worst case. For some figures
- * function could be redefined with better efficiency
- *  Note. Actually, for generic algorithm InputIt could be sufficient,
- * but it isn't for more effictive algorithms. So don't pass iterator,
- * weaker than BidirIt, as it may cause compilation problems
-*/
-template <class BidirIt>
-int nintersections(BidirIt figure_fst, BidirIt figure_last)
-	{ return nintersections_helper(figure_fst, figure_last, 0); }
+ * function could be redefined with better efficiency */
+template <class InputIt>
+int nintersections(InputIt figure_fst, InputIt figure_last);
+
+/* Same as nintersections, but always uses generic algorithm O(n^2) */
+template <class InputIt>
+int nintersections_benchmark(InputIt figure_fst, InputIt figure_last);
 
 /*  Caclulates number of intersections between two groups
  * of geometric objects
  *  Intesection between figures in on group is not taken into account
  * (only between groups)
- *  BidirIt must satisfy the same criteria as in nintersections() */
-template <class BidirIt1, class BidirIt2>
-int ncrossintersections(BidirIt1 a_fst, BidirIt1 a_last,
-	BidirIt2 b_fst, BidirIt2 b_last)
-	{ return ncrossintersections_helper(a_fst, a_last, b_fst, b_last, 0); }
+ *  InputIt must satisfy the same criteria as in nintersections()
+ *  Figures, for which valid() returns false, are ignored */
+template <class InputIt1, class InputIt2>
+int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
+	InputIt2 b_fst, InputIt2 b_last);
 
 } // Geometry namespace end
 
+/* Some templates needed for nintersections() work */
+#include "geometry_nintersections.h"
 
 #endif // GEOMETRY_H_
