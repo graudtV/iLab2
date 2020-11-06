@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_NINTERSECTIONS_H_
-#define GEOMETRY_NINTERSECTIONS_H_
+#ifndef GEOMETRY_INTERSECTIONS_H_
+#define GEOMETRY_INTERSECTIONS_H_
 
 #include "other.h"
 #include <iterator>
@@ -120,4 +120,4 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 
 } // Geometry namespace end
 
-#endif // GEOMETRY_NINTERSECTIONS_H_
+#endif // GEOMETRY_INTERSECTIONS_H_

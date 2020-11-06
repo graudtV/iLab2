@@ -252,6 +252,6 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 } // Geometry namespace end
 
 /* Some templates needed for nintersections() work */
-#include "geometry_nintersections.h"
+#include "geometry_intersections.h"
 
 #endif // GEOMETRY_H_
