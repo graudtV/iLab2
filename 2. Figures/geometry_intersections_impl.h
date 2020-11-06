@@ -1,5 +1,7 @@
-#ifndef GEOMETRY_INTERSECTIONS_H_
-#define GEOMETRY_INTERSECTIONS_H_
+/* Intersections of groups of geometric objects (realization of templates) */
+
+#ifndef GEOMETRY_INTERSECTIONS_IMPL_H_
+#define GEOMETRY_INTERSECTIONS_IMPL_H_
 
 #include "other.h"
 #include <iterator>
@@ -120,4 +122,4 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 
 } // Geometry namespace end
 
-#endif // GEOMETRY_INTERSECTIONS_H_
+#endif // GEOMETRY_INTERSECTIONS_IMPL_H_

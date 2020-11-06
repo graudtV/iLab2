@@ -1,5 +1,5 @@
-GEOMETRY_HEADERS=geometry.h geometry_intersections.h other.h
-GEOMETRY_OBJS=obj/geometry.o obj/geometry_intersections.o
+GEOMETRY_HEADERS=geometry.h geometry_intersections_impl.h other.h
+GEOMETRY_OBJS=obj/geometry.o obj/geometry_intersections_impl.o
 GEOMETRY_FILES=$(GEOMETRY_HEADERS) $(GEOMETRY_OBJS)
 CONST_FLAGS=-std=c++17
 

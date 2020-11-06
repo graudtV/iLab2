@@ -1,3 +1,5 @@
+/* Intersections of groups of geometric objects (realization of non-templates) */
+
 #include "geometry.h"
 
 namespace Geometry {
