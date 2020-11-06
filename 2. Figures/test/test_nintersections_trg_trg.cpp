@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
 		trgs.push_back({a, b, c});
 	}
 
-	int nintrsctns = (opt_benchmark)
-		? nintersections_benchmark(trgs.begin(), trgs.end())
-		: nintersections(trgs.begin(), trgs.end());
-	if (opt_print_nintersections)
-		std::cout << nintrsctns << std::endl;
-
+	if (opt_print_nintersections) {
+		std::cout << ((opt_benchmark)
+			? nintersections_benchmark(trgs.begin(), trgs.end())
+			: nintersections(trgs.begin(), trgs.end())) << std::endl;
+	}
+		
 	if (opt_print_intersected_trgs_indices) {
 		auto intrstns_table = build_intersections_table(trgs.begin(), trgs.end());
 		std::set<std::vector<Geometry::Triangle>::iterator> trg_iterators;
