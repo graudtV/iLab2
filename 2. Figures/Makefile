@@ -17,7 +17,8 @@ all: init test
 init:
 	mkdir -p obj bin $(DATA_FILES_FOR_TESTS_PATH)
 
-run-example: bin/example
+run-example: example.cpp $(GEOMETRY_FILES)
+	$(CXX) $(OTHER_FLAGS) $(CXXFLAGS) $< $(GEOMETRY_OBJS) -o bin/example
 	./bin/example
 
 clean:
@@ -49,10 +50,10 @@ $(DATA_FILES_FOR_TESTS_PATH)%.input: bin/trggen
 	./bin/trggen $(notdir $(basename $@)) > $@
 
 $(DATA_FILES_FOR_TESTS_PATH)%.output: $(DATA_FILES_FOR_TESTS_PATH)%.input
-	bin/test_nintersections_trg_trg -b < $< > $@
+	bin/test_nintersections_trg_trg -nb < $< > $@
 
 define compare-files
-bin/test_nintersections_trg_trg < $(1) | diff - $(2) --brief
+bin/test_nintersections_trg_trg -n < $(1) | diff - $(2) --brief
 endef
 
 #  Usefull inside bash for loop. Prints command in every iteration

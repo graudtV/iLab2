@@ -249,6 +249,12 @@ template <class InputIt1, class InputIt2>
 int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 	InputIt2 b_fst, InputIt2 b_last);
 
+template <class Iterator>
+using IntersectionsTable = std::vector<std::array<Iterator, 2>>;
+
+template <class InputIt>
+IntersectionsTable<InputIt>
+build_intersections_table(InputIt figure_fst, InputIt figure_last);
 
 } // Geometry namespace end
 

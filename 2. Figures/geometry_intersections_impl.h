@@ -26,13 +26,7 @@ using references_vector_iterator_t
 /* Generic algorithm for number of intersections (see nintersections())
  * Complexity: O(n^2) */
 template <class Figure>
-int nintersections_helper(
-	references_vector_iterator_t<Figure> figure_fst,
-	references_vector_iterator_t<Figure> figure_last)
-{ return nintersections_helper_benchmark(figure_fst, figure_last); }
-
-template <class Figure>
-int nintersections_helper_benchmark(
+int nintersections_helper_generic(
 	references_vector_iterator_t<Figure> figure_fst,
 	references_vector_iterator_t<Figure> figure_last)
 {
@@ -43,6 +37,15 @@ int nintersections_helper_benchmark(
 				++counter;
 	return counter;
 }
+
+/*  Just calls generic algorithm. The algorithm is in separate
+ * function, because it is also used in nintersections_benchmark(),
+ * which needs to call exactly generic algorithm, but not a specialization */
+template <class Figure>
+int nintersections_helper(
+	references_vector_iterator_t<Figure> figure_fst,
+	references_vector_iterator_t<Figure> figure_last)
+{ return nintersections_helper_generic<Figure>(figure_fst, figure_last); }
 
 /* Quick algorithm for triangles */
 template <>
@@ -100,7 +103,7 @@ int nintersections_benchmark(InputIt figure_fst, InputIt figure_last)
 	std::vector<std::reference_wrapper<Figure>> figures(figure_fst, figure_last);
 	erase_not_valid_figures(figures);
 
-	return nintersections_helper_benchmark<Figure>(figures.begin(), figures.end());
+	return nintersections_helper_generic<Figure>(figures.begin(), figures.end());
 }
 
 template <class InputIt1, class InputIt2>
@@ -117,6 +120,18 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 
 	return ncrossintersections_helper(figures_a.begin(), figures_a.end(),
 		figures_b.begin(), figures_b.end());
+}
+
+template <class InputIt>
+IntersectionsTable<InputIt>
+build_intersections_table(InputIt figure_fst, InputIt figure_last)
+{
+	IntersectionsTable<InputIt> intrsctns_table;
+	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
+		for (auto it2 = std::next(it1); it2 != figure_last; ++it2)
+			if (intersected(*it1, *it2))
+				intrsctns_table.push_back({it1, it2});
+	return intrsctns_table;
 }
 
 
