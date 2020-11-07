@@ -134,7 +134,6 @@ build_intersections_table(InputIt figure_fst, InputIt figure_last)
 	return intrsctns_table;
 }
 
-
 } // Geometry namespace end
 
 #endif // GEOMETRY_INTERSECTIONS_IMPL_H_

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <array>
+#include <vector>
 #include <variant>
 #include <type_traits>
 

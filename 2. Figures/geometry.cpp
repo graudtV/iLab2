@@ -101,8 +101,7 @@ std::ostream& operator <<(std::ostream& os, const Vector& vec)
 bool Triangle::valid() const
 {
 	return a.valid() && b.valid() && c.valid()
-		&& Vector::outer_product(Vector(a, b), Vector(a, c)) != Vector::null_vector
-		&& b != c;
+		&& Vector::outer_product(Vector(a, b), Vector(a, c)) != Vector::null_vector;
 }
 
 std::ostream& operator <<(std::ostream& os, const Triangle& trg)
