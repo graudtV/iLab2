@@ -3,19 +3,19 @@ GEOMETRY_OBJS=obj/geometry.o obj/geometry_intersections_impl.o
 GEOMETRY_FILES=$(GEOMETRY_HEADERS) $(GEOMETRY_OBJS)
 OTHER_FLAGS=-std=c++17
 
-# Folder, where auto-generated data-files for tests will be places
-DATA_FILES_FOR_TESTS_PATH=test/data/generated/
+# Folder, where auto-generated data-files for tests will be placed
+DATA_FILES_FOR_TESTS_PATH=test/data/generated
 
 # Number of auto-generated data-files for tests. Tests run automatically
 N_TRGS_TO_GENERATE=10 100 1000
 
-.SECONDARY: $(GEOMETRY_OBJS)
+.SECONDARY: $(GEOMETRY_OBJS) bin/trggen
 .PHONY: all clean run-example test
 
 all: init test
 
 init:
-	mkdir -p obj bin $(DATA_FILES_FOR_TESTS_PATH)
+	mkdir -p obj bin $(DATA_FILES_FOR_TESTS_PATH)/sparse $(DATA_FILES_FOR_TESTS_PATH)/dense
 
 run-example: example.cpp $(GEOMETRY_FILES)
 	$(CXX) $(OTHER_FLAGS) $(CXXFLAGS) $< $(GEOMETRY_OBJS) -o bin/example
@@ -33,23 +33,28 @@ obj/%.o: %.cpp $(GEOMETRY_HEADERS)
 
 
 # TESTS building and running
-DATA_FILES_FOR_TESTS=$(addprefix $(DATA_FILES_FOR_TESTS_PATH),\
-	$(addsuffix .input, $(N_TRGS_TO_GENERATE)) \
-	$(addsuffix .output, $(N_TRGS_TO_GENERATE)))
+DATA_FILES_FOR_TESTS_BASENAME=$(addprefix $(DATA_FILES_FOR_TESTS_PATH)/dense/,$(N_TRGS_TO_GENERATE))\
+ $(addprefix $(DATA_FILES_FOR_TESTS_PATH)/sparse/,$(N_TRGS_TO_GENERATE))
+DATA_FILES_FOR_TESTS=$(addsuffix .input,$(DATA_FILES_FOR_TESTS_BASENAME))\
+ $(addsuffix .output,$(DATA_FILES_FOR_TESTS_BASENAME))
+
+#DATA_FILES_FOR_TESTS=$(addprefix $(DATA_FILES_FOR_TESTS_PATH)/dense/,\
+#	$(addsuffix .input, $(N_TRGS_TO_GENERATE)) \
+#	$(addsuffix .output, $(N_TRGS_TO_GENERATE)))
 
 test: bin/unit_test bin/test_nintersections_trg_trg $(DATA_FILES_FOR_TESTS)
 	bin/unit_test
 	$(call compare-files,test/data/1.input,test/data/1.output)
 	$(call compare-files,test/data/2.input,test/data/2.output)
 	$(call compare-files,test/data/3.input,test/data/3.output)
-	@for ntrgs in $(N_TRGS_TO_GENERATE);do\
-	 $(call echo-and-exec,$(call compare-files,$(DATA_FILES_FOR_TESTS_PATH)$$ntrgs.input,\
-	 $(DATA_FILES_FOR_TESTS_PATH)$$ntrgs.output)); done
+	$(call compare-files,test/data/4.input,test/data/4.output)
+	@for file_basename in $(DATA_FILES_FOR_TESTS_BASENAME); do\
+	 $(call echo-and-exec,$(call compare-files,$$file_basename.input,$$file_basename.output)); done
 
-$(DATA_FILES_FOR_TESTS_PATH)%.input: bin/trggen
+$(DATA_FILES_FOR_TESTS_PATH)/%.input: bin/trggen
 	./bin/trggen $(notdir $(basename $@)) > $@
 
-$(DATA_FILES_FOR_TESTS_PATH)%.output: $(DATA_FILES_FOR_TESTS_PATH)%.input
+$(DATA_FILES_FOR_TESTS_PATH)/%.output: $(DATA_FILES_FOR_TESTS_PATH)/%.input
 	bin/test_nintersections_trg_trg -nb < $< > $@
 
 define compare-files

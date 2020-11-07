@@ -34,12 +34,12 @@ int main(int argc, char *argv[])
 	int opt_print_nintersections = 0;
 	int opt_print_intersected_trgs_indices = 0;
 
-	while ((opt = getopt(argc, argv, "bni?")) != -1) {
+	while ((opt = getopt(argc, argv, "bni")) != -1) {
 		switch (opt) {
 		case 'b': opt_benchmark = 1; break;
 		case 'n': opt_print_nintersections = 1; break;
 		case 'i': opt_print_intersected_trgs_indices = 1; break;
-		case '?': default: usage_error(); break;
+		default: usage_error(); break;
 		}
 	}
 	if (!opt_print_nintersections && !opt_print_intersected_trgs_indices)
