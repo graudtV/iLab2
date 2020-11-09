@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include <iomanip>
 #include "../geometry.h"
 
 namespace {
@@ -46,23 +47,24 @@ void generate(int ntriangles, Function random_triangle_generator)
 			Geometry::Triangle trg = random_triangle_generator();
 			if (!trg.valid())
 				continue;
-			printf("%lg %lg %lg %lg %lg %lg %lg %lg %lg\n",
-				float(trg.a.x), float(trg.a.y), float(trg.a.z),
-				float(trg.b.x), float(trg.b.y), float(trg.b.z),
-				float(trg.c.x), float(trg.c.y), float(trg.c.z)
-				);
+			std::cout
+				<< trg.a.x << ' ' << trg.a.y << ' ' << trg.a.z << ' '
+				<< trg.b.x << ' ' << trg.b.y << ' ' << trg.b.z << ' '
+				<< trg.c.x << ' ' << trg.c.y << ' ' << trg.c.z << std::endl;
 			break;
 		}
 	}
 }
 
 /* Triangles coords will variate from -maxcoord to maxcoord (maxcoords > 0) */
-const float maxcoord = 500;
+const float maxcoord = 1e6;
 
 } // anonymous namespace end
 
 int main(int argc, char *argv[])
 {
+	std::ios::sync_with_stdio(true);
+
 	int opt = 0;
 	int opt_sparse = 0;
 	int ntriangles = 0;
@@ -85,16 +87,18 @@ int main(int argc, char *argv[])
 	auto sparse_trg_generator = [=]() {
 		/* Placing triangles in small random cells in space
 		 * Number of cells = ntriangles */
-		static float cell_sz = pow(maxcoord/ntriangles, 1.0/3.0);
+		static float cell_sz = maxcoord / pow(ntriangles, 1.0/3.0);
 		float cell_start = rnd_float(-maxcoord, maxcoord);
 		return rnd_triangle(cell_start, cell_start + cell_sz);
 	};
 
+	//std::cout << std::setprecision(5);
 	printf("%d\n", ntriangles);
-	if (opt_sparse)
+	if (opt_sparse) {
+		std::cout << std::setprecision(5);
 		generate(ntriangles, sparse_trg_generator);
-	else {
-		generate(ntriangles, [=](){ return rnd_triangle(-maxcoord, maxcoord); });
 	}
+	else
+		generate(ntriangles, [=](){ return rnd_triangle(-maxcoord, maxcoord); });
 
 }
