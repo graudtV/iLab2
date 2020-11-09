@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <vector>
 #include <set>
+#include <iomanip>
 
 namespace {
 
@@ -28,6 +29,7 @@ void usage_error()
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(true);
+	//std::cin >> std::setprecision(5);
 
 	int opt = 0;
 	int opt_benchmark = 0;
