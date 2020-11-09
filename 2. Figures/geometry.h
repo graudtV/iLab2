@@ -26,12 +26,12 @@ public:
 	friend Float operator *(Float fst, Float snd) { return fst.m_val * snd.m_val; }
 	friend Float operator /(Float fst, Float snd) { return fst.m_val / snd.m_val; }
 
-	friend bool operator ==(Float fst, Float snd) { return fabs(fst.m_val - snd.m_val) <= float_tolerance; }
-	friend bool operator < (Float fst, Float snd) { return fst.m_val < snd.m_val - float_tolerance; }
-	friend bool operator <=(Float fst, Float snd) { return fst.m_val <= snd.m_val + float_tolerance; }
-	friend bool operator !=(Float fst, Float snd) { return !(fst == snd); }
-	friend bool operator > (Float fst, Float snd) { return snd < fst; }
-	friend bool operator >=(Float fst, Float snd) { return snd <= fst; }
+	friend bool operator ==(Float fst, Float snd) { return eq(fst, snd); }
+	friend bool operator < (Float fst, Float snd) { return lower(fst, snd); }
+	friend bool operator <=(Float fst, Float snd) { return lowereq(fst, snd); }
+	friend bool operator !=(Float fst, Float snd) { return noteq(fst, snd); }
+	friend bool operator > (Float fst, Float snd) { return greater(fst, snd); }
+	friend bool operator >=(Float fst, Float snd) { return greatereq(fst, snd); }
 	
 	template <class T> friend Float operator +(Float fst, const T& snd) { return float(fst) + float(snd); }
 	template <class T> friend Float operator -(Float fst, const T& snd) { return float(fst) - float(snd); }
@@ -58,6 +58,13 @@ public:
 	template <class T> friend bool operator >=(const T& fst, Float snd) { return snd >= fst; }
 
 	bool valid() const { return std::isnormal(m_val) || m_val == 0; }
+
+	static bool eq			(Float fst, Float snd, Float tolerance = float_tolerance) { return fabs(fst.m_val - snd.m_val) <= float(tolerance); }
+	static bool lower		(Float fst, Float snd, Float tolerance = float_tolerance) { return fst.m_val < snd.m_val - float(tolerance); }
+	static bool lowereq		(Float fst, Float snd, Float tolerance = float_tolerance) { return fst.m_val <= snd.m_val + float(tolerance); }
+	static bool noteq		(Float fst, Float snd, Float tolerance = float_tolerance) { return !eq(fst, snd, tolerance); }
+	static bool greater		(Float fst, Float snd, Float tolerance = float_tolerance) { return lower(snd, fst, tolerance); }
+	static bool greatereq	(Float fst, Float snd, Float tolerance = float_tolerance) { return lowereq(snd, fst, tolerance); }
 
 	static float float_tolerance;
 private:
@@ -88,6 +95,7 @@ inline bool operator !=(const Point& fst, const Point& snd)
 	{ return !(fst == snd); }
 Point operator +(const Point& pnt, const Vector& vec);
 
+
 struct Vector {
 	Float x, y, z;
 
@@ -100,8 +108,13 @@ struct Vector {
 	Float module() const
 		{ return std::sqrt(x*x + y*y + z*z); }
 
-	/* Decompostion into basis */
- 	Float decompose(const Vector& basis) const;
+	/*  Decompostion into linear basis. If vector cannot be decomposed, decomposition
+	 * of projection will be returned. If basis == null_vector, behaviour is unndefined */
+ 	Float decompose(const Vector& basis) const
+ 		{ return Vector::inner_product(*this, basis) / Vector::inner_product(basis, basis); }
+
+	/*  Decompostion into planar basis. If vector cannot be decomposed, decomposition
+	 * of projection will be returned. If (fst, snd) is not a basis, behaviour is undefined */
 	std::array<Float, 2> decompose(const Vector& fst, const Vector& snd) const;
 
 	Vector operator /(Float value) const
@@ -117,8 +130,6 @@ struct Vector {
 	static bool collinear(const Vector& fst, const Vector& snd);
 
 	static const Vector null_vector;
-
-	struct DecompositionError {};
 };
 
 std::ostream& operator <<(std::ostream& os, const Vector& vec);

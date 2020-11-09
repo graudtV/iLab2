@@ -3,10 +3,15 @@
 #include <sstream>
 #include <algorithm>
 #include <cassert>
+#include <sstream>
 
 namespace Geometry {
 
-float Float::float_tolerance = 0.01;
+/*  Accuracy of current Vector::mixed_product implementation is about 0.0001f
+ * So float_tolerance should have reserve, or combinations
+ * of basic Geometry operations will not work properly
+ * float_tolerance = 0.01f seems to be good */
+float Float::float_tolerance = 0.001;
 const Point Point::null_point(0, 0, 0);
 const Vector Vector::null_vector(0, 0, 0);
 const Plane Plane::oxy({0, 0, 0}, {1, 0, 0}, {0, 1, 0});
@@ -33,35 +38,18 @@ std::ostream& operator <<(std::ostream& os, const Point& pnt)
 bool Vector::valid() const
 	{ return Point(x, y, z).valid(); }
 
-Float Vector::decompose(const Vector& basis) const
-{
-	if (!collinear(*this, basis) || basis == Vector::null_vector)
-		throw DecompositionError();
-	return Vector::inner_product(*this, basis) /
-		Vector::inner_product(basis, basis);
-}
-
 std::array<Float, 2>
 Vector::decompose(const Vector& fst, const Vector& snd) const
 {
-	if (Vector::mixed_product(*this, fst, snd) != 0
-		|| Vector::outer_product(fst, snd) == Vector::null_vector)
-		throw DecompositionError();
-	Float alpha = 0, betta = 0;
-	Float denominator = 0;
-	if ((denominator = fst.x*snd.y - snd.x*fst.y) != 0) {
-		alpha = x*snd.y - snd.x*y;
-		betta = fst.x*y - x*fst.y;
-	} else if ((denominator = fst.y*snd.z - snd.y*fst.z) != 0) {
-		alpha = y*snd.z - snd.y*z;
-		betta = fst.y*z - y*fst.z;
-	} else {
-		denominator = fst.x*snd.z - snd.x*fst.z;
-		assert(denominator != 0);
-		alpha = x*snd.z - snd.x*z;
-		betta = fst.x*z - x*fst.z;
-	}
-	return {alpha / denominator, betta / denominator};
+	Float a1 = Vector::inner_product(fst, fst);
+	Float b1 = Vector::inner_product(fst, snd);
+	Float b2 = Vector::inner_product(snd, snd);
+	Float c1 = Vector::inner_product(*this, fst);
+	Float c2 = Vector::inner_product(*this, snd);
+	Float denominator = a1 * b2 - b1 * b1; // != 0 if (fst, snd) is basis
+	Float delta1 = c1 * b2 - b1 * c2;
+	Float delta2 = a1 * c2 - c1 * b1;
+	return { delta1 / denominator, delta2 / denominator };
 }
 
 Vector Vector::outer_product(const Vector& fst, const Vector& snd)
@@ -224,14 +212,24 @@ intersection(const Line& line, const Triangle& trg)
 				auto intrsctn = intersection(line, side);
 				if (std::holds_alternative<Segment>(intrsctn))
 					return side; // intersection is a whole triangle side
-				else if (std::holds_alternative<Point>(intrsctn)) {
-					Point pnt = std::get<Point>(intrsctn);
-					if (std::find(intrsctn_points.begin(), intrsctn_points.end(), pnt)
-						== intrsctn_points.end())
-						intrsctn_points.push_back(pnt);
-				}
+				else if (std::holds_alternative<Point>(intrsctn))
+					intrsctn_points.push_back(std::get<Point>(intrsctn));
 			}
-			assert(intrsctn_points.size() <= 2);
+
+			/*  If line intersects triangle in a vertex, there could be
+			 * 3 intersection points. Moreover, because of accuracy issues,
+			 * they may all be different! To solve with, points are
+			 * sorted by x coordinate, then obvious dublicates are erased with
+			 * std::unique. If there are still 3 points, the second one is
+			 * ignored, and first and last are taken as segment ends.
+			 */
+			assert(intrsctn_points.size() <= 3); // I have never seen a situation if there are more than 3 points
+			std::sort(intrsctn_points.begin(), intrsctn_points.end(),
+				[](const Point& fst, const Point& snd) { return std::less<float>()(fst.x, snd.x); });
+			intrsctn_points.erase(
+				std::unique(intrsctn_points.begin(), intrsctn_points.end()),
+				intrsctn_points.end());
+
 			if (intrsctn_points.size() == 1)
 				return intrsctn_points.front();
 			if (intrsctn_points.size() == 2)
@@ -289,6 +287,7 @@ intersection(const Segment& fst, const Segment& snd)
 	Line line = std::get<Line>(lines_intersection);
 	Vector linedir = line.direction();
 	Point line_origin = line.a;
+
 	Float a1 = Vector(line_origin, fst.a).decompose(linedir);
 	Float a2 = Vector(line_origin, fst.b).decompose(linedir);
 	Float b1 = Vector(line_origin, snd.a).decompose(linedir);
@@ -304,6 +303,7 @@ intersection(const Segment& fst, const Segment& snd)
 		std::swap(a1, b1);
 		std::swap(a2, b2);
 	}
+
 	/* Now a1 <= a2, a1 <= b1 <= b2;
 	 * case1: a1 <= a2 <= b1 <= b2
 	 * case2: a1 <= b1 <= a2 <= b2

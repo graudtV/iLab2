@@ -50,40 +50,35 @@ TEST_CASE ( "Line::contains()", "[Line]" ) {
 }
 
 TEST_CASE ("Vector::decompose(Vector)", "[Vector]" ) {
-	SECTION ( "correct decomposition" ) {
-		REQUIRE(Geometry::Vector(10, 20, 30).decompose({1, 2, 3}) == 10);
-		REQUIRE(Geometry::Vector(-10, 0, -30).decompose({1, 0, 3}) == -10);
-		REQUIRE(Geometry::Vector(0, 2, 0).decompose({0, 1, 0}) == 2);
-	}
-	SECTION ( "impossible decomposition" ) {
-		bool exception_thrown = false;
-		try { Geometry::Vector(10, 20, 30).decompose({1, 2, 3.5}); }
-		catch (Geometry::Vector::DecompositionError&) { exception_thrown = true; }
-		REQUIRE(exception_thrown);
-	}
+	REQUIRE(null_vector.decompose(Geometry::Vector(1, 2, 3)) == 0);
+	REQUIRE(Geometry::Vector(10, 20, 30).decompose({1, 2, 3}) == 10);
+	REQUIRE(Geometry::Vector(-10, 0, -30).decompose({1, 0, 3}) == -10);
+	REQUIRE(Geometry::Vector(0, 3.45, 5.67).decompose({0, 1, 0}) == 3.45);
+	REQUIRE(Geometry::Vector(1.23, 3.45, 5.67).decompose({1.23, 3.45, 0}) == 1);
 }
 
 TEST_CASE ("Vector::decompose(Vector, Vector)", "[Vector]" ) {
-	SECTION ( "correct decomposition test 1" ) {
+	SECTION ( "null_vector decompose") {
+		Geometry::Vector v1 = {1, 2, 3}, v2 = {4, 5, 6};
+		auto koeffs = null_vector.decompose(v1, v2);
+		REQUIRE(koeffs[0] == 0);
+		REQUIRE(koeffs[1] == 0);		
+	}
+	SECTION ( "the vector to decompose is in the same plane" ) {
 		// v3 = 2.5*v1 - 3*v2
 		Geometry::Vector v1 = {1, 2, 3}, v2 = {2, 7, 6}, v3 = {-3.5, -16, -10.5};
 		auto koeffs = v3.decompose(v1, v2);
 		REQUIRE(koeffs[0] == 2.5);
 		REQUIRE(koeffs[1] == -3.0);
 	}
-	SECTION ( "correct decomposition test 2" ) {
-		// v3 = v1 + v2
-		Geometry::Vector v1 = {1, 0, 2}, v2 = {-1, 0, -1}, v3 = {0, 0, 1};
+	SECTION ( "the vector to decompose is NOT in the same plane"
+		" (decomposing vector projection)") {
+		// v3 = v1 + v2 - 10 * outer_product(v1, v2)
+		Geometry::Vector v1 = {1, 0, 2}, v2 = {-1, 0, -1}, v3 = {0, 10, 1};
 		auto koeffs = v3.decompose(v1, v2);
 		REQUIRE(koeffs[0] == 1);
 		REQUIRE(koeffs[1] == 1);
 	}
-	SECTION ( "impossible decomposition" ) {
-		bool exception_thrown = false;
-		try { Geometry::Vector(1, 0, 0).decompose({0, 1, 0}, {0, 0, 1}); }
-		catch (Geometry::Vector::DecompositionError&) { exception_thrown = true; }
-		REQUIRE(exception_thrown);
-	}	
 }
 
 TEST_CASE ( "Vector::inner_product", "[Vector]" ) {
@@ -112,7 +107,7 @@ TEST_CASE ( "Vector::mixed_product", "[Vector]" ) {
 		{ 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } ) == 1);
 	REQUIRE(Geometry::Vector::mixed_product(
 		{ 1.23, 2.31, 3.12 }, { 4.56, 5.64, 6.45 }, { 7.89, -8.97, 9.78 } )
-		== -112.908978 );
+		== -112.909 );
 }
 
 TEST_CASE ( "Vector::collinear", "[Vector]" ) {
