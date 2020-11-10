@@ -11,6 +11,10 @@
 
 namespace Geometry {
 
+
+/******* prototypes and declarations for local usage *******/
+
+
 /*  Warning: don't call helper functions from client code,
  * because they don't check if figures are valid.
  * Use functions like nintersections(), ncrossintersections() */
@@ -23,66 +27,57 @@ template <class Figure>
 using references_vector_iterator_t
 	= typename std::vector<std::reference_wrapper<Figure>>::iterator;
 
-/* Generic algorithm for number of intersections (see nintersections())
- * Complexity: O(n^2) */
+/*----- nintersections -----*/
+
 template <class Figure>
 int nintersections_helper_generic(
 	references_vector_iterator_t<Figure> figure_fst,
-	references_vector_iterator_t<Figure> figure_last)
-{
-	int counter = 0;
-	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
-		for (auto it2 = std::next(it1); it2 != figure_last; ++it2)
-			if (intersected(it1->get(), it2->get()))
-				++counter;
-	return counter;
-}
+	references_vector_iterator_t<Figure> figure_last);
 
-/*  Just calls generic algorithm. The algorithm is in separate
- * function, because it is also used in nintersections_benchmark(),
- * which needs to call exactly generic algorithm, but not a specialization */
 template <class Figure>
 int nintersections_helper(
 	references_vector_iterator_t<Figure> figure_fst,
 	references_vector_iterator_t<Figure> figure_last)
 { return nintersections_helper_generic<Figure>(figure_fst, figure_last); }
 
-/* Quick algorithm for triangles */
 template <>
 int nintersections_helper<Triangle>(
 	references_vector_iterator_t<Triangle> trgs_fst,
-	references_vector_iterator_t<Triangle> trgs_last
+	references_vector_iterator_t<Triangle> trgs_last);
+
+
+/*----- ncrossintersections -----*/
+
+template <class Figure1, class Figure2>
+int ncrossintersections_helper_generic(
+	references_vector_iterator_t<Figure1> a_fst,
+	references_vector_iterator_t<Figure1> a_last,
+	references_vector_iterator_t<Figure2> b_fst,
+	references_vector_iterator_t<Figure2> b_last
 	);
 
-/*  Generic algorithm for counting number of intersections between
- * groups of geometric objects (see ncrossintersections())
- *  Complexity: O(n*m) */
 template <class Figure1, class Figure2>
 int ncrossintersections_helper(
 	references_vector_iterator_t<Figure1> a_fst,
 	references_vector_iterator_t<Figure1> a_last,
 	references_vector_iterator_t<Figure2> b_fst,
-	references_vector_iterator_t<Figure2> b_last
-	)
-{
-	int counter = 0;
-	for(auto it1 = a_fst; it1 != a_last; ++it1)
-		for (auto it2 = b_fst; it2 != b_last; ++it2)
-			if (intersected(it1->get(), it2->get()))
-				++counter;
-	return counter;	
-}
+	references_vector_iterator_t<Figure2> b_last)
+{ return ncrossintersections_helper_generic<Figure1, Figure2>(a_fst, a_last, b_fst, b_last); }
 
-/* Doesn't change underlying container */
+template <>
+int ncrossintersections_helper<Triangle, Triangle>(
+	references_vector_iterator_t<Triangle> a_fst,
+	references_vector_iterator_t<Triangle> a_last,
+	references_vector_iterator_t<Triangle> b_fst,
+	references_vector_iterator_t<Triangle> b_last);
+
 template <class Figure>
-void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figures)
-{
-	auto is_not_valid = [](const Figure& f) { return !f.valid(); };
-	figures.erase(
-		std::remove_if(figures.begin(), figures.end(), is_not_valid),
-		figures.end()
-		);
-}
+void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figures);
+
+
+
+
+/******* realizations of "interface" functions *******/
 
 template <class InputIt>
 int nintersections(InputIt figure_fst, InputIt figure_last)
@@ -132,6 +127,62 @@ build_intersections_table(InputIt figure_fst, InputIt figure_last)
 			if (intersected(*it1, *it2))
 				intrsctns_table.push_back({it1, it2});
 	return intrsctns_table;
+}
+
+
+
+
+/******* realization of helper functions *******/
+
+/*  Generic algorithm for number of intersections (see nintersections())
+ *  Sometimes it is usefull to use exactly generic algorithm, so
+ * it is separated from nintersections_helper<Figure, Figure>()
+ *  Complexity: O(n^2) */
+template <class Figure>
+int nintersections_helper_generic(
+	references_vector_iterator_t<Figure> figure_fst,
+	references_vector_iterator_t<Figure> figure_last)
+{
+	int counter = 0;
+	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
+		for (auto it2 = std::next(it1); it2 != figure_last; ++it2)
+			if (intersected(it1->get(), it2->get()))
+				++counter;
+	return counter;
+}
+
+/*  Generic algorithm for counting number of intersections between
+ * groups of geometric objects (see ncrossintersections())
+ *  Sometimes it is usefull to use exactly generic algorithm, so
+ * it is separated from ncrossintersections_helper<Figure, Figure>()
+ *  Complexity: O(n*m) */
+template <class Figure1, class Figure2>
+int ncrossintersections_helper_generic(
+	references_vector_iterator_t<Figure1> a_fst,
+	references_vector_iterator_t<Figure1> a_last,
+	references_vector_iterator_t<Figure2> b_fst,
+	references_vector_iterator_t<Figure2> b_last
+	)
+{
+	//printf("using generic\n");
+	int counter = 0;
+	for(auto it1 = a_fst; it1 != a_last; ++it1)
+		for (auto it2 = b_fst; it2 != b_last; ++it2)
+			if (intersected(it1->get(), it2->get()))
+				++counter;
+	return counter;	
+}
+
+
+/* Doesn't change underlying container */
+template <class Figure>
+void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figures)
+{
+	auto is_not_valid = [](const Figure& f) { return !f.valid(); };
+	figures.erase(
+		std::remove_if(figures.begin(), figures.end(), is_not_valid),
+		figures.end()
+		);
 }
 
 } // Geometry namespace end

@@ -29,6 +29,7 @@ void usage_error()
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(true);
+	srand(time(0));
 	//std::cin >> std::setprecision(5);
 
 	int opt = 0;
