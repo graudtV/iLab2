@@ -7,13 +7,13 @@ OTHER_FLAGS=-std=c++17
 DATA_FILES_FOR_TESTS_PATH=test/data/generated
 
 # Number of auto-generated data-files for tests. Tests run automatically
-N_TRGS_TO_GENERATE_DENSE=10 100 1000
-N_TRGS_TO_GENERATE_SPARSE=1000 2000 10000
+N_TRGS_TO_GENERATE_DENSE=100 1000
+N_TRGS_TO_GENERATE_SPARSE=100 1000 2000
 
 .SECONDARY: $(GEOMETRY_OBJS) bin/trggen
-.PHONY: all clean run-example test
+.PHONY: all clean run-example test unit-tests other-tests
 
-all: init test
+all: init unit-tests other-tests
 
 init:
 	mkdir -p obj bin $(DATA_FILES_FOR_TESTS_PATH)/sparse $(DATA_FILES_FOR_TESTS_PATH)/dense
@@ -39,8 +39,12 @@ DATA_FILES_FOR_TESTS_BASENAME=$(addprefix $(DATA_FILES_FOR_TESTS_PATH)/dense/,$(
 DATA_FILES_FOR_TESTS=$(addsuffix .input,$(DATA_FILES_FOR_TESTS_BASENAME))\
  $(addsuffix .output,$(DATA_FILES_FOR_TESTS_BASENAME))
 
-test: bin/unit_test bin/test_nintersections_trg_trg $(DATA_FILES_FOR_TESTS)
+test: unit-tests other-tests
+
+unit-tests: bin/unit_test
 	bin/unit_test
+
+other-tests: bin/test_nintersections_trg_trg $(DATA_FILES_FOR_TESTS)
 	$(call compare-files,test/data/1.input,test/data/1.output)
 	$(call compare-files,test/data/2.input,test/data/2.output)
 	$(call compare-files,test/data/3.input,test/data/3.output)
