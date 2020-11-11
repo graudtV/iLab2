@@ -18,11 +18,6 @@ const Plane Plane::oxy({0, 0, 0}, {1, 0, 0}, {0, 1, 0});
 const Plane Plane::oxz({0, 0, 0}, {1, 0, 0}, {0, 0, 1});
 const Plane Plane::oyz({0, 0, 0}, {0, 1, 0}, {0, 0, 1});
 
-Point::Point(const Vector& vec) :
-	x(vec.x), y(vec.y), z(vec.z) {}
-
-bool Point::valid() const
-	{ return x.valid() && y.valid() && z.valid(); }
 
 Point operator +(const Point& pnt, const Vector& vec)
 	{ return Point(pnt.x + vec.x, pnt.y + vec.y, pnt.z + vec.z); }
@@ -34,9 +29,6 @@ bool operator ==(const Point& fst, const Point& snd)
 
 std::ostream& operator <<(std::ostream& os, const Point& pnt)
 	{ return os << "(" << pnt.x << "; " << pnt.y << "; " << pnt.z << ")"; }
-
-bool Vector::valid() const
-	{ return Point(x, y, z).valid(); }
 
 std::array<Float, 2>
 Vector::decompose(const Vector& fst, const Vector& snd) const
@@ -148,9 +140,6 @@ bool Plane::contains(const Line& line) const
 		&& (Vector::mixed_product(p, q, Vector(a, line.a)) == 0);
 }
 
-Vector Plane::normal() const
-	{ return Vector::outer_product(Vector(a, b), Vector(a, c)); }
-
 std::ostream& operator <<(std::ostream& os, const Plane& plane)
 	{ return os << "{" << plane.a << ", " << plane.b << ", " << plane.c << "}"; }
 
@@ -159,12 +148,9 @@ Vector vdistance(const Point& fst, const Point& snd)
 
 Vector vdistance(const Point& pnt, const Plane& plane)
 {
-	Vector a = Vector(plane.a, plane.b);
-	Vector b = Vector(plane.a, plane.c);
-	Vector n = Vector::outer_product(a, b);
 	Vector l = Vector(pnt, plane.a);
-
-	return Vector::mixed_product(a, b, l) / Vector::inner_product(n, n) * n;
+	Vector n = plane.unit_normal();
+	return Vector::inner_product(l, n) * n;
 }
 
 std::variant<EmptySet, Line, Plane>

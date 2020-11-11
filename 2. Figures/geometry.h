@@ -84,7 +84,8 @@ struct Point {
 	Point() : x(0), y(0), z(0) {}
 	Point(Float xx, Float yy, Float zz) : x(xx), y(yy), z(zz) {}
 	explicit Point(const Vector& vec);
-	bool valid() const;
+	bool valid() const
+		{ return x.valid() && y.valid() && z.valid(); }
 
 	static const Point null_point;
 };
@@ -104,7 +105,9 @@ struct Vector {
 	Vector(const Point& fst, const Point& snd) :
 		x(snd.x - fst.x), y(snd.y - fst.y), z(snd.z - fst.z) {}
 
-	bool valid() const;
+	bool valid() const
+		{ return Point(x, y, z).valid(); }
+	
 	Float module() const
 		{ return std::sqrt(x*x + y*y + z*z); }
 
@@ -132,6 +135,8 @@ struct Vector {
 	static const Vector null_vector;
 };
 
+inline Point::Point(const Vector& vec) :
+	x(vec.x), y(vec.y), z(vec.z) {}
 std::ostream& operator <<(std::ostream& os, const Vector& vec);
 bool operator ==(const Vector& fst, const Vector& snd);
 inline bool operator !=(const Vector& fst, const Vector& snd)
@@ -189,9 +194,15 @@ struct Plane {
 		a(aa), b(bb), c(cc) {}
 	explicit Plane(const Triangle& trg) :
 		a(trg.a), b(trg.b), c(trg.c) {}
+
 	bool valid() const;
 	bool contains(const Line& line) const;
-	Vector normal() const;
+
+	Vector normal() const
+		{ return Vector::outer_product(Vector(a, b), Vector(a, c)); }
+
+	Vector unit_normal() const
+		{ return Vector::unit(normal()); }
 
 	static const Plane oxy, oxz, oyz;
 };

@@ -12,13 +12,14 @@ namespace {
  * is pointed by base normal
  *  returns -1 - if all of trg vertices are in a halfplane,
  * which is opposit to the one pointed by base plane normal */
-int halfplane_detector(const Triangle& base, const Triangle& trg)
+int halfplane_detector(const Plane& base, const Triangle& trg)
 {
-	Plane plane(base);
-	Vector n = plane.normal();
-	Float a = Vector::inner_product(n, vdistance(trg.a, plane));
-	Float b = Vector::inner_product(n, vdistance(trg.b, plane));
-	Float c = Vector::inner_product(n, vdistance(trg.c, plane));
+	Vector n = base.normal();
+
+	Float a = Vector::inner_product(Vector(trg.a, base.a), n);
+	Float b = Vector::inner_product(Vector(trg.b, base.a), n);
+	Float c = Vector::inner_product(Vector(trg.c, base.a), n);
+
 	if (a > 0 && b > 0 && c > 0)
 		return -1;
 	if (a < 0 && b < 0 && c < 0)
@@ -45,11 +46,12 @@ int nintersections_helper<Triangle>(
 
 	random_base_choise(trgs_fst, trgs_last);
 	const Triangle& base = *trgs_fst; // Опорный элемент
+	const Plane base_plane(base);
 	auto fst_after_base = std::next(trgs_fst);
 
 	auto borders = other::split(fst_after_base, trgs_last,
-		[base](const Triangle& trg) { return halfplane_detector(base, trg) == 0; }, // both halfplanes
-		[base](const Triangle& trg) { return halfplane_detector(base, trg) < 0; } // left halfplane
+		[base_plane](const Triangle& trg) { return halfplane_detector(base_plane, trg) == 0; }, // both halfplanes
+		[base_plane](const Triangle& trg) { return halfplane_detector(base_plane, trg) < 0; } // left halfplane
 		);
 	/* trgs_fst   -- borders[0]	-	both halfplanes - "middle"
 	 * borders[0] -- borders[1]	-	left halfplane
@@ -66,8 +68,8 @@ int nintersections_helper<Triangle>(
 	return nintersections_helper<Triangle>	(borders[0], borders[1]) // among left
 		+ nintersections_helper<Triangle>	(borders[1], trgs_last) // among right
 		+ nintersections_helper<Triangle>	(trgs_fst, borders[0]) // among middle
-		+ ncrossintersections_helper<Triangle, Triangle> (trgs_fst, borders[0], borders[0], borders[1]) // middle - left
-		+ ncrossintersections_helper<Triangle, Triangle> (trgs_fst, borders[0], borders[1], trgs_last); // middle - right
+		+ ncrossintersections_helper<Triangle, Triangle> (borders[0], borders[1], trgs_fst, borders[0]) // left - middle
+		+ ncrossintersections_helper<Triangle, Triangle> (borders[1], trgs_last,  trgs_fst, borders[0]); // right - middle
 }
 
 template <>
@@ -82,12 +84,13 @@ int ncrossintersections_helper<Triangle, Triangle>(
 		return ncrossintersections_helper_generic<Triangle, Triangle> (a_fst, a_last, b_fst, b_last);
 	
 	const Triangle& base = *a_fst;
+	const Plane base_plane(base);
 	auto fst_after_base = std::next(a_fst);
 
-	auto middle_halfplane_detector = [base](const Triangle& trg)
-		{ return halfplane_detector(base, trg) == 0; };
-	auto left_halfplane_detector = [base](const Triangle& trg)
-		{ return halfplane_detector(base, trg) < 0; };
+	auto middle_halfplane_detector = [base_plane](const Triangle& trg)
+		{ return halfplane_detector(base_plane, trg) == 0; };
+	auto left_halfplane_detector = [base_plane](const Triangle& trg)
+		{ return halfplane_detector(base_plane, trg) < 0; };
 
 	auto a_borders = other::split(fst_after_base, a_last,
 		middle_halfplane_detector, left_halfplane_detector);
