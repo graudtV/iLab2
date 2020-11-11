@@ -7,6 +7,7 @@
 #include <vector>
 #include <variant>
 #include <type_traits>
+#include <iterator>
 
 namespace Geometry {
 
@@ -274,16 +275,20 @@ template <class InputIt1, class InputIt2>
 int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 	InputIt2 b_fst, InputIt2 b_last);
 
-template <class Iterator>
-using IntersectionsTable = std::vector<std::array<Iterator, 2>>;
+using IntersectionsTable = std::vector<std::array<int, 2>>;
 
 /*  Returns a table which describes intersections between geometric
  * figures. All pairs of figures, which are intersected, and only they
- * have a corresponding entry in a table, which is a pair of iterators on
- * these figures */
+ * have a corresponding entry in a table, which is a pair of these figures
+ * indices. Indices starts from 0. */
 template <class InputIt>
-IntersectionsTable<InputIt>
+IntersectionsTable
 build_intersections_table(InputIt figure_fst, InputIt figure_last);
+
+/* Same as build_intersections_table(), but always uses generic algorithm O(n^2) */
+template <class InputIt>
+IntersectionsTable
+build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last);
 
 } // Geometry namespace end
 

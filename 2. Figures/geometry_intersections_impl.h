@@ -27,6 +27,19 @@ template <class Figure>
 using references_vector_iterator_t
 	= typename std::vector<std::reference_wrapper<Figure>>::iterator;
 
+template <class Figure>
+struct FigureAndIndex {
+	std::reference_wrapper<const Figure> figure;
+	int idx;
+
+	FigureAndIndex(const Figure& f, int i) : figure(f), idx(i) {}
+};
+
+template <class Figure>
+using figure_and_index_vector_iterator_t
+	= typename std::vector<FigureAndIndex<Figure>>::iterator;
+
+
 /*----- nintersections -----*/
 
 template <class Figure>
@@ -74,6 +87,36 @@ int ncrossintersections_helper<Triangle, Triangle>(
 template <class Figure>
 void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figures);
 
+template <class Figure>
+void erase_not_valid_figures(std::vector<FigureAndIndex<Figure>>& figures);
+
+template <class Figure, class InputIt>
+void init_figure_and_index_vec(
+	std::vector<FigureAndIndex<Figure>>& figures,
+	InputIt figure_fst,
+	InputIt figure_last);
+
+
+/*----- build_intersections_table -----*/
+
+template <class Figure>
+void build_intersections_table_helper_generic(
+	figure_and_index_vector_iterator_t<Figure> figure_fst,
+	figure_and_index_vector_iterator_t<Figure> figure_last,
+	IntersectionsTable& intrsctns_table);
+
+template <class Figure>
+void build_intersections_table_helper(
+	figure_and_index_vector_iterator_t<Figure> figure_fst,
+	figure_and_index_vector_iterator_t<Figure> figure_last,
+	IntersectionsTable& intrsctns_table)
+{ build_intersections_table_helper_generic<Figure>(figure_fst, figure_last, intrsctns_table); }
+
+template <>
+void build_intersections_table_helper<Triangle>(
+	figure_and_index_vector_iterator_t<Triangle> figure_fst,
+	figure_and_index_vector_iterator_t<Triangle> figure_last,
+	IntersectionsTable& intrsctns_table);
 
 
 
@@ -113,22 +156,41 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 	erase_not_valid_figures(figures_a);
 	erase_not_valid_figures(figures_b);
 
-	return ncrossintersections_helper(figures_a.begin(), figures_a.end(),
+	return ncrossintersections_helper<Figure1, Figure2>(figures_a.begin(), figures_a.end(),
 		figures_b.begin(), figures_b.end());
 }
 
 template <class InputIt>
-IntersectionsTable<InputIt>
+IntersectionsTable
 build_intersections_table(InputIt figure_fst, InputIt figure_last)
 {
-	IntersectionsTable<InputIt> intrsctns_table;
-	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
-		for (auto it2 = std::next(it1); it2 != figure_last; ++it2)
-			if (intersected(*it1, *it2))
-				intrsctns_table.push_back({it1, it2});
+	using Figure = typename std::iterator_traits<InputIt>::value_type;
+	
+	std::vector<FigureAndIndex<Figure>> figures;
+	init_figure_and_index_vec(figures, figure_fst, figure_last);
+	erase_not_valid_figures(figures);
+
+	IntersectionsTable intrsctns_table;
+	build_intersections_table_helper<Figure>(
+		figures.begin(), figures.end(), intrsctns_table);
 	return intrsctns_table;
 }
 
+template <class InputIt>
+IntersectionsTable
+build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last)
+{
+	using Figure = typename std::iterator_traits<InputIt>::value_type;
+	
+	std::vector<FigureAndIndex<Figure>> figures;
+	init_figure_and_index_vec(figures, figure_fst, figure_last);
+	erase_not_valid_figures(figures);
+
+	IntersectionsTable intrsctns_table;
+	build_intersections_table_helper_generic<Figure>(
+		figures.begin(), figures.end(), intrsctns_table);
+	return intrsctns_table;
+}
 
 
 
@@ -173,6 +235,18 @@ int ncrossintersections_helper_generic(
 	return counter;	
 }
 
+template <class Figure>
+void build_intersections_table_helper_generic(
+	figure_and_index_vector_iterator_t<Figure> figure_fst,
+	figure_and_index_vector_iterator_t<Figure> figure_last,
+	IntersectionsTable& intrsctns_table
+	)
+{
+	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
+		for (auto it2 = std::next(it1); it2 != figure_last; ++it2)
+			if (intersected(it1->figure.get(), it2->figure.get()))
+				intrsctns_table.push_back({it1->idx, it2->idx});
+};
 
 /* Doesn't change underlying container */
 template <class Figure>
@@ -183,6 +257,29 @@ void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figure
 		std::remove_if(figures.begin(), figures.end(), is_not_valid),
 		figures.end()
 		);
+}
+
+template <class Figure>
+void erase_not_valid_figures(std::vector<FigureAndIndex<Figure>>& figures)
+{
+	auto is_not_valid = [](const FigureAndIndex<Figure>& figure_and_index)
+		{ return !figure_and_index.figure.get().valid(); };
+
+	figures.erase(
+		std::remove_if(figures.begin(), figures.end(), is_not_valid),
+		figures.end()
+		);
+}
+
+template <class Figure, class InputIt>
+void init_figure_and_index_vec(
+	std::vector<FigureAndIndex<Figure>>& figures,
+	InputIt figure_fst,
+	InputIt figure_last)
+{
+	int i = 0;
+	for (auto it = figure_fst; it != figure_last; ++it)
+		figures.push_back({*it, i++});
 }
 
 } // Geometry namespace end

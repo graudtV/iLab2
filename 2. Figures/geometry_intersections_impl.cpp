@@ -123,4 +123,14 @@ int ncrossintersections_helper<Triangle, Triangle>(
 	return n1 + n2 + n3 + n4;
 }
 
+template <>
+void build_intersections_table_helper<Triangle>(
+	figure_and_index_vector_iterator_t<Triangle> figure_fst,
+	figure_and_index_vector_iterator_t<Triangle> figure_last,
+	IntersectionsTable& intrsctns_table)
+{
+	//printf("quick\n");
+	return build_intersections_table_helper_generic<Triangle>(figure_fst, figure_last, intrsctns_table);
+}
+
 } // Geometry namespace end

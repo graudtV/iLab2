@@ -67,14 +67,16 @@ int main(int argc, char *argv[])
 	}
 		
 	if (opt_print_intersected_trgs_indices) {
-		auto intrstns_table = build_intersections_table(trgs.begin(), trgs.end());
-		std::set<std::vector<Geometry::Triangle>::iterator> trg_iterators;
+		auto intrstns_table = (opt_benchmark)
+			? build_intersections_table_benchmark(trgs.begin(), trgs.end())
+			: build_intersections_table(trgs.begin(), trgs.end());
+		std::set<int> intersected_trgs;
 		for (auto& entry: intrstns_table) {
-			trg_iterators.insert(entry[0]);
-			trg_iterators.insert(entry[1]);
+			intersected_trgs.insert(entry[0]);
+			intersected_trgs.insert(entry[1]);
 		}
-		for (auto it : trg_iterators)
-			std::cout << it - trgs.begin() << " ";
+		for (int idx : intersected_trgs)
+			std::cout << idx << " ";
 		std::cout << std::endl;
 	}
 

@@ -36,8 +36,10 @@ obj/%.o: %.cpp $(GEOMETRY_HEADERS)
 # TESTS building and running
 DATA_FILES_FOR_TESTS_BASENAME=$(addprefix $(DATA_FILES_FOR_TESTS_PATH)/dense/,$(N_TRGS_TO_GENERATE_DENSE))\
  $(addprefix $(DATA_FILES_FOR_TESTS_PATH)/sparse/,$(N_TRGS_TO_GENERATE_SPARSE))
-DATA_FILES_FOR_TESTS=$(addsuffix .input,$(DATA_FILES_FOR_TESTS_BASENAME))\
- $(addsuffix .output,$(DATA_FILES_FOR_TESTS_BASENAME))
+DATA_FILES_FOR_TESTS=\
+ $(addsuffix .input,$(DATA_FILES_FOR_TESTS_BASENAME))\
+ $(addsuffix .output,$(DATA_FILES_FOR_TESTS_BASENAME))\
+ $(addsuffix .indices.output,$(DATA_FILES_FOR_TESTS_BASENAME))
 
 test: unit-tests other-tests
 
@@ -45,12 +47,18 @@ unit-tests: bin/unit_test
 	bin/unit_test
 
 other-tests: bin/test_nintersections_trg_trg $(DATA_FILES_FOR_TESTS)
-	$(call compare-files,test/data/1.input,test/data/1.output)
-	$(call compare-files,test/data/2.input,test/data/2.output)
-	$(call compare-files,test/data/3.input,test/data/3.output)
-	$(call compare-files,test/data/4.input,test/data/4.output)
+	$(call check-ntrgs,test/data/1.input,test/data/1.output)
+	$(call check-ntrgs,test/data/2.input,test/data/2.output)
+	$(call check-ntrgs,test/data/3.input,test/data/3.output)
+	$(call check-ntrgs,test/data/4.input,test/data/4.output)
+	$(call check-indices,test/data/1.input,test/data/1.indices.output)
+	$(call check-indices,test/data/2.input,test/data/2.indices.output)
+	$(call check-indices,test/data/3.input,test/data/3.indices.output)
+	$(call check-indices,test/data/4.input,test/data/4.indices.output)
 	@for file_basename in $(DATA_FILES_FOR_TESTS_BASENAME); do\
-	 $(call echo-and-exec,$(call compare-files,$$file_basename.input,$$file_basename.output)); done
+	 $(call echo-and-exec,$(call check-ntrgs,$$file_basename.input,$$file_basename.output)); done
+	@for file_basename in $(DATA_FILES_FOR_TESTS_BASENAME); do\
+	 $(call echo-and-exec,$(call check-indices,$$file_basename.input,$$file_basename.indices.output)); done
 
 $(DATA_FILES_FOR_TESTS_PATH)/dense/%.input: bin/trggen
 	bin/trggen $(notdir $(basename $@)) > $@
@@ -61,8 +69,15 @@ $(DATA_FILES_FOR_TESTS_PATH)/sparse/%.input: bin/trggen
 $(DATA_FILES_FOR_TESTS_PATH)/%.output: $(DATA_FILES_FOR_TESTS_PATH)/%.input
 	bin/test_nintersections_trg_trg -nb < $< > $@
 
-define compare-files
-bin/test_nintersections_trg_trg -n < $(1) | diff - $(2) --brief
+$(DATA_FILES_FOR_TESTS_PATH)/%.indices.output: $(DATA_FILES_FOR_TESTS_PATH)/%.input
+	bin/test_nintersections_trg_trg -ib < $< > $@
+
+define check-ntrgs
+bin/test_nintersections_trg_trg -n < $(1) | diff - $(2) -bB --brief
+endef
+
+define check-indices
+bin/test_nintersections_trg_trg -i < $(1) | diff - $(2) -bB --brief
 endef
 
 #  Usefull inside bash for loop. Prints command in every iteration
