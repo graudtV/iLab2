@@ -125,9 +125,10 @@ struct Vector {
 
 	static Float inner_product(const Vector& fst, const Vector& snd)
 		{ return fst.x * snd.x + fst.y * snd.y + fst.z * snd.z; }
-	static Vector outer_product(const Vector& fst, const Vector& snd);
-	static Float mixed_product(const Vector& fst,
-		const Vector& snd, const Vector& thd);
+	static Vector outer_product(const Vector& fst, const Vector& snd)
+		{ return Vector (fst.y * snd.z - fst.z * snd.y, fst.z * snd.x - fst.x * snd.z, fst.x * snd.y - fst.y * snd.x); }
+	static Float mixed_product(const Vector& fst, const Vector& snd, const Vector& thd)
+		{ return Vector::inner_product(fst, Vector::outer_product(snd, thd)); }
 	static Vector unit(const Vector& vec)
 		{ return vec / vec.module(); }
 	static bool collinear(const Vector& fst, const Vector& snd);
@@ -196,6 +197,7 @@ struct Plane {
 		a(trg.a), b(trg.b), c(trg.c) {}
 
 	bool valid() const;
+	bool contains(const Point& pnt) const;
 	bool contains(const Line& line) const;
 
 	Vector normal() const

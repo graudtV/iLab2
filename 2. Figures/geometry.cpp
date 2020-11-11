@@ -44,23 +44,6 @@ Vector::decompose(const Vector& fst, const Vector& snd) const
 	return { delta1 / denominator, delta2 / denominator };
 }
 
-Vector Vector::outer_product(const Vector& fst, const Vector& snd)
-{
-	return Vector (
-		fst.y * snd.z - fst.z * snd.y,
-		fst.z * snd.x - fst.x * snd.z,
-		fst.x * snd.y - fst.y * snd.x
-		);
-}
-
-Float Vector::mixed_product(const Vector& fst,
-	const Vector& snd, const Vector& thd)
-{
-	return fst.x * (snd.y * thd.z - snd.z * thd.y)
-	     + fst.y * (snd.z * thd.x - snd.x * thd.z)
-	     + fst.z * (snd.x * thd.y - snd.y * thd.x);
-}
-
 bool Vector::collinear(const Vector& fst, const Vector& snd)
 	{ return Vector::outer_product(fst, snd) == Vector::null_vector; }
 
