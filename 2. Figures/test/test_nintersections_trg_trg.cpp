@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	if (!opt_print_nintersections && !opt_print_intersected_trgs_indices)
-		usage_error();
+		opt_print_intersected_trgs_indices = 1;
 
 	int ntriangles = 0;
 	std::cin >> ntriangles;
