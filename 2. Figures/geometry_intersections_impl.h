@@ -33,6 +33,7 @@ struct FigureAndIndex {
 	int idx;
 
 	FigureAndIndex(const Figure& f, int i) : figure(f), idx(i) {}
+	operator const Figure& () { return figure; }
 };
 
 template <class Figure>
@@ -114,9 +115,21 @@ void build_intersections_table_helper(
 
 template <>
 void build_intersections_table_helper<Triangle>(
-	figure_and_index_vector_iterator_t<Triangle> figure_fst,
-	figure_and_index_vector_iterator_t<Triangle> figure_last,
+	figure_and_index_vector_iterator_t<Triangle> trgs_fst,
+	figure_and_index_vector_iterator_t<Triangle> trgs_last,
 	IntersectionsTable& intrsctns_table);
+
+
+/*----- build_crossintersections_table -----*/
+
+template <class Figure1, class Figure2>
+void build_crossintersections_table_helper_generic(
+	figure_and_index_vector_iterator_t<Figure1> a_fst,
+	figure_and_index_vector_iterator_t<Figure1> a_last,
+	figure_and_index_vector_iterator_t<Figure2> b_fst,
+	figure_and_index_vector_iterator_t<Figure2> b_last,
+	IntersectionsTable& intrsctns_table);
+
 
 
 
@@ -194,6 +207,7 @@ build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last)
 
 
 
+
 /******* realization of helper functions *******/
 
 /*  Generic algorithm for number of intersections (see nintersections())
@@ -223,10 +237,8 @@ int ncrossintersections_helper_generic(
 	references_vector_iterator_t<Figure1> a_fst,
 	references_vector_iterator_t<Figure1> a_last,
 	references_vector_iterator_t<Figure2> b_fst,
-	references_vector_iterator_t<Figure2> b_last
-	)
+	references_vector_iterator_t<Figure2> b_last)
 {
-	//printf("using generic\n");
 	int counter = 0;
 	for(auto it1 = a_fst; it1 != a_last; ++it1)
 		for (auto it2 = b_fst; it2 != b_last; ++it2)
@@ -239,14 +251,27 @@ template <class Figure>
 void build_intersections_table_helper_generic(
 	figure_and_index_vector_iterator_t<Figure> figure_fst,
 	figure_and_index_vector_iterator_t<Figure> figure_last,
-	IntersectionsTable& intrsctns_table
-	)
+	IntersectionsTable& intrsctns_table)
 {
 	for (auto it1 = figure_fst; it1 != figure_last; ++it1)
 		for (auto it2 = std::next(it1); it2 != figure_last; ++it2)
 			if (intersected(it1->figure.get(), it2->figure.get()))
 				intrsctns_table.push_back({it1->idx, it2->idx});
 };
+
+template <class Figure1, class Figure2>
+void build_crossintersections_table_helper_generic(
+	figure_and_index_vector_iterator_t<Figure1> a_fst,
+	figure_and_index_vector_iterator_t<Figure1> a_last,
+	figure_and_index_vector_iterator_t<Figure2> b_fst,
+	figure_and_index_vector_iterator_t<Figure2> b_last,
+	IntersectionsTable& intrsctns_table)
+{
+	for(auto it1 = a_fst; it1 != a_last; ++it1)
+		for (auto it2 = b_fst; it2 != b_last; ++it2)
+			if (intersected(it1->figure.get(), it2->figure.get()))
+				intrsctns_table.push_back({it1->idx, it2->idx});
+}
 
 /* Doesn't change underlying container */
 template <class Figure>
