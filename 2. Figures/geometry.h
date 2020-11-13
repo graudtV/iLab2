@@ -1,3 +1,7 @@
+/*
+ * geomerty.h - declarations of all Geometry types and methods
+ */
+
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 
@@ -255,9 +259,12 @@ bool intersected(const Figure1& fst, const Figure2& snd)
  * account.
  *  InputIt must be so, that a function bool intersected(*it1, *it2) is
  * defined. Figure must have method valid(), i.e. it->valid() is defined
- *  
+ *  Figures, for which valid() returns false, are ignored 
+ *
  *  Complexity: O(n^2) in the worst case. For some figures
- * function could be redefined with better efficiency */
+ * function uses more effective algorithm (if specialization of
+ * nintersections_helper<>() is provided for this figure. See
+ * geometry_intersections_impl.h) */
 template <class InputIt>
 int nintersections(InputIt figure_fst, InputIt figure_last);
 
@@ -269,7 +276,7 @@ int nintersections_benchmark(InputIt figure_fst, InputIt figure_last);
  * of geometric objects
  *  Intesection between figures in on group is not taken into account
  * (only between groups)
- *  InputIt must satisfy the same criteria as in nintersections()
+ *  InputIt must satisfy the same criteria as for nintersections()
  *  Figures, for which valid() returns false, are ignored */
 template <class InputIt1, class InputIt2>
 int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
@@ -280,7 +287,9 @@ using IntersectionsTable = std::vector<std::array<int, 2>>;
 /*  Returns a table which describes intersections between geometric
  * figures. All pairs of figures, which are intersected, and only they
  * have a corresponding entry in a table, which is a pair of these figures
- * indices. Indices starts from 0. */
+ * indices. Indices starts from 0.
+ *  InputIt must satisfy the same criteria as for nintersections()
+ *  Figures, for which valid() returns false, are ignored */
 template <class InputIt>
 IntersectionsTable
 build_intersections_table(InputIt figure_fst, InputIt figure_last);

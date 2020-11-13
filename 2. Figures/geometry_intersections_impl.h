@@ -1,4 +1,7 @@
-/* Intersections of groups of geometric objects (realization of templates) */
+/*
+ *  geometry_intersections_impl.h - implementation of template fuctions
+ * for intersecting groups of geometric objects
+ */
 
 #ifndef GEOMETRY_INTERSECTIONS_IMPL_H_
 #define GEOMETRY_INTERSECTIONS_IMPL_H_
@@ -85,18 +88,6 @@ int ncrossintersections_helper<Triangle, Triangle>(
 	references_vector_iterator_t<Triangle> b_fst,
 	references_vector_iterator_t<Triangle> b_last);
 
-template <class Figure>
-void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figures);
-
-template <class Figure>
-void erase_not_valid_figures(std::vector<FigureAndIndex<Figure>>& figures);
-
-template <class Figure, class InputIt>
-void init_figure_and_index_vec(
-	std::vector<FigureAndIndex<Figure>>& figures,
-	InputIt figure_fst,
-	InputIt figure_last);
-
 
 /*----- build_intersections_table -----*/
 
@@ -129,6 +120,21 @@ void build_crossintersections_table_helper_generic(
 	figure_and_index_vector_iterator_t<Figure2> b_fst,
 	figure_and_index_vector_iterator_t<Figure2> b_last,
 	IntersectionsTable& intrsctns_table);
+
+
+/*----- other prototypes -----*/
+
+template <class Figure>
+void erase_not_valid_figures(std::vector<std::reference_wrapper<Figure>>& figures);
+
+template <class Figure>
+void erase_not_valid_figures(std::vector<FigureAndIndex<Figure>>& figures);
+
+template <class Figure, class InputIt>
+void init_figure_and_index_vec(
+	std::vector<FigureAndIndex<Figure>>& figures,
+	InputIt figure_fst,
+	InputIt figure_last);
 
 
 
@@ -212,7 +218,7 @@ build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last)
 
 /*  Generic algorithm for number of intersections (see nintersections())
  *  Sometimes it is usefull to use exactly generic algorithm, so
- * it is separated from nintersections_helper<Figure, Figure>()
+ * it is separated from nintersections_helper()
  *  Complexity: O(n^2) */
 template <class Figure>
 int nintersections_helper_generic(
@@ -230,7 +236,7 @@ int nintersections_helper_generic(
 /*  Generic algorithm for counting number of intersections between
  * groups of geometric objects (see ncrossintersections())
  *  Sometimes it is usefull to use exactly generic algorithm, so
- * it is separated from ncrossintersections_helper<Figure, Figure>()
+ * it is separated from ncrossintersections_helper()
  *  Complexity: O(n*m) */
 template <class Figure1, class Figure2>
 int ncrossintersections_helper_generic(
@@ -247,6 +253,11 @@ int ncrossintersections_helper_generic(
 	return counter;	
 }
 
+/*  Generic algorithm for building intersections table
+ * (see build_intersections_table())
+ *  Sometimes it is usefull to use exactly generic algorithm, so
+ * it is separated from build_intersections_table_helper()
+ *  Complexity: O(n^2) */
 template <class Figure>
 void build_intersections_table_helper_generic(
 	figure_and_index_vector_iterator_t<Figure> figure_fst,
@@ -259,6 +270,11 @@ void build_intersections_table_helper_generic(
 				intrsctns_table.push_back({it1->idx, it2->idx});
 };
 
+/*  Generic algorithm for building cross-intersections table
+ * (see build_crossintersections_table())
+ *  Sometimes it is usefull to use exactly generic algorithm, so
+ * it is separated from build_crossintersections_table_helper()
+ *  Complexity: O(n*m) */
 template <class Figure1, class Figure2>
 void build_crossintersections_table_helper_generic(
 	figure_and_index_vector_iterator_t<Figure1> a_fst,

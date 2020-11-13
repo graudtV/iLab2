@@ -1,4 +1,7 @@
-/* Intersections of groups of geometric objects (realization of non-templates) */
+/*
+ *  geometry_intersections_impl.cpp - implementation of non-template
+ * functions for intersecting groups of geometric objects
+ */
 
 #include "geometry.h"
 #include <random>
@@ -54,7 +57,7 @@ inline auto split_triangles(const Triangle& base,
 
 /*  Algorithm for counting number of intersections between
  * triangles. More effective than generic algorithm (see nintersections())
- *  Complexity: O(nlog(n)^2) on average, O(n^2) in the worst case */
+ *  Complexity: O(nlog(n)^2 (probably, I am not s)) on average, O(n^2) in the worst case */
 template <>
 int nintersections_helper<Triangle>(
 	references_vector_iterator_t<Triangle> trgs_fst,
