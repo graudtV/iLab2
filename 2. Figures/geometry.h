@@ -10,9 +10,7 @@
 #include <array>
 #include <vector>
 #include <variant>
-#include <type_traits>
 #include <iterator>
-#include <experimental/type_traits>
 
 namespace Geometry {
 

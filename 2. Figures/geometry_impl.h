@@ -1,6 +1,9 @@
 #ifndef GEOMETRY_IMPL_H_
 #define GEOMETRY_IMPL_H_
 
+#include <type_traits>
+#include <experimental/type_traits>
+
 namespace Geometry {
 
 using std::experimental::is_detected_v;
