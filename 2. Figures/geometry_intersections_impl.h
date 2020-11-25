@@ -168,7 +168,7 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 	InputIt2 b_fst, InputIt2 b_last)
 {
 	using Figure1 = typename std::iterator_traits<InputIt1>::value_type;
-	using Figure2 = typename std::iterator_traits<InputIt1>::value_type;
+	using Figure2 = typename std::iterator_traits<InputIt2>::value_type;
 
 	std::vector<std::reference_wrapper<Figure1>> figures_a(a_fst, a_last);
 	std::vector<std::reference_wrapper<Figure2>> figures_b(b_fst, b_last);

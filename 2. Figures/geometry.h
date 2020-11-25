@@ -12,11 +12,12 @@
 #include <variant>
 #include <type_traits>
 #include <iterator>
+#include <experimental/type_traits>
 
 namespace Geometry {
 
 /* Compares float according to float_tolerance */
-class Float {
+class Float final {
 public:
 	Float() {}
 	Float(float val) : m_val(val) {}
@@ -80,7 +81,6 @@ private:
 };
 
 
-
 struct Vector;
 
 struct Point {
@@ -89,6 +89,8 @@ struct Point {
 	Point() : x(0), y(0), z(0) {}
 	Point(Float xx, Float yy, Float zz) : x(xx), y(yy), z(zz) {}
 	explicit Point(const Vector& vec);
+	virtual ~Point() {}
+
 	bool valid() const
 		{ return x.valid() && y.valid() && z.valid(); }
 
@@ -109,6 +111,7 @@ struct Vector {
 	Vector(Float xx, Float yy, Float zz) : x(xx), y(yy), z(zz) {}
 	Vector(const Point& fst, const Point& snd) :
 		x(snd.x - fst.x), y(snd.y - fst.y), z(snd.z - fst.z) {}
+	virtual ~Vector() {}
 
 	bool valid() const
 		{ return Point(x, y, z).valid(); }
@@ -158,6 +161,8 @@ struct Triangle {
 
 	Triangle(const Point& aa, const Point& bb, const Point& cc) :
 		a(aa), b(bb), c(cc) {}
+	virtual ~Triangle() {}
+
 	bool valid() const;
 };
 
@@ -169,6 +174,8 @@ struct Segment {
 	Point a, b;
 
 	Segment(const Point& aa, const Point& bb) : a(aa), b(bb) {}
+	virtual ~Segment() {}
+
 	bool valid() const;
 	bool contains(const Point& pnt) const;
 };
@@ -178,11 +185,14 @@ bool operator ==(const Segment& fst, const Segment& snd);
 inline bool operator !=(const Segment& fst, const Segment& snd)
 	{ return !(fst == snd); }
 
+
 struct Line {
 	Point a, b;
 
 	Line(const Point& aa, const Point& bb) : a(aa), b(bb) {}
 	Line(const Segment& seg) : a(seg.a), b(seg.b) {}
+	virtual ~Line() {}
+
 	bool valid() const;
 	bool contains(const Point& pnt) const;
 	Vector direction() const { return Vector(a, b); }
@@ -193,6 +203,7 @@ bool operator ==(const Line& fst, const Line& snd);
 inline bool operator !=(const Line& fst, const Line& snd)
 	{ return !(fst == snd); }
 
+
 struct Plane {
 	Point a, b, c;
 
@@ -200,6 +211,7 @@ struct Plane {
 		a(aa), b(bb), c(cc) {}
 	explicit Plane(const Triangle& trg) :
 		a(trg.a), b(trg.b), c(trg.c) {}
+	virtual ~Plane() {}
 
 	bool valid() const;
 	bool contains(const Point& pnt) const;
@@ -221,8 +233,6 @@ struct EmptySet {};
 /* Distance as a vector */
 Vector vdistance(const Point& fst, const Point& snd);
 Vector vdistance(const Point& pnt, const Plane& plane);
-
-bool intersected(const Triangle& fst, const Triangle& snd);
 
 std::variant<EmptySet, Line, Plane>
 intersection(const Plane& fst, const Plane& snd);
@@ -249,9 +259,11 @@ template <class Figure1, class Figure2>
 Float distance(const Figure1& fst, const Figure2& snd)
 	{ return vdistance(fst, snd).module(); }
 
+/*  Requires either intersected_impl(fst, snd) or intersection(fst, snd).
+ *  Note. Don't redefine intersected() itself, it works badly with
+ * inheritance. Provide intersected_impl(fst, snd) or intersection(fst, snd). */
 template <class Figure1, class Figure2>
-bool intersected(const Figure1& fst, const Figure2& snd)
-	{ return !std::holds_alternative<EmptySet>(intersection(fst, snd)); }
+bool intersected(const Figure1& fst, const Figure2& snd);
 
 /*  Calculates number of mutual intersections of geometric figures.
  *  Self-intersections are not counted, but if there are two equal figures,
@@ -300,6 +312,9 @@ IntersectionsTable
 build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last);
 
 } // Geometry namespace end
+
+/* Some templates for distance() and intersected() */
+#include "geometry_impl.h"
 
 /* Some templates needed for nintersections() work */
 #include "geometry_intersections_impl.h"

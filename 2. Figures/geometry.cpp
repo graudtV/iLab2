@@ -325,7 +325,7 @@ intersection(const Point& fst, const Point& snd)
 	return EmptySet();
 }
 
-bool intersected(const Triangle& fst, const Triangle& snd)
+bool intersected_impl(const Triangle& fst, const Triangle& snd)
 {
 	/*  Просто и надежно, легко справляется со случаями, когда оба
 	 * треугольника лежат в одной плоскости.
