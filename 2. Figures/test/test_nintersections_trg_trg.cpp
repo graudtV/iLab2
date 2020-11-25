@@ -28,6 +28,11 @@ void usage_error()
 
 int main(int argc, char *argv[])
 {
+	using vec_it_t = std::vector<Geometry::Triangle>::iterator;
+	const auto nintersections_benchmark = Geometry::nintersections_benchmark<vec_it_t>;
+	const auto get_intersected_figures_indices_benchmark
+		= Geometry::get_intersected_figures_indices_benchmark<vec_it_t>;
+
 	std::ios::sync_with_stdio(true);
 	srand(time(0));
 	//std::cin >> std::setprecision(5);
@@ -67,14 +72,10 @@ int main(int argc, char *argv[])
 	}
 		
 	if (opt_print_intersected_trgs_indices) {
-		auto intrstns_table = (opt_benchmark)
-			? build_intersections_table_benchmark(trgs.begin(), trgs.end())
-			: build_intersections_table(trgs.begin(), trgs.end());
-		std::set<int> intersected_trgs;
-		for (auto& entry: intrstns_table) {
-			intersected_trgs.insert(entry[0]);
-			intersected_trgs.insert(entry[1]);
-		}
+		auto intersected_trgs = (opt_benchmark)
+			? get_intersected_figures_indices_benchmark(trgs.begin(), trgs.end())
+			: get_intersected_figures_indices(trgs.begin(), trgs.end());
+
 		for (int idx : intersected_trgs)
 			std::cout << idx << " ";
 		std::cout << std::endl;

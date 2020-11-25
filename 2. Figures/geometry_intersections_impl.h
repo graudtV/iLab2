@@ -141,7 +141,7 @@ void init_figure_and_index_vec(
 
 /******* realizations of "interface" functions *******/
 
-template <class InputIt>
+template <class InputIt, bool benchmark /* = false */ >
 int nintersections(InputIt figure_fst, InputIt figure_last)
 {
 	using Figure = typename std::iterator_traits<InputIt>::value_type;
@@ -149,18 +149,9 @@ int nintersections(InputIt figure_fst, InputIt figure_last)
 	std::vector<std::reference_wrapper<Figure>> figures(figure_fst, figure_last);
 	erase_not_valid_figures(figures);
 
+	if constexpr (benchmark)
+		return nintersections_helper_generic<Figure>(figures.begin(), figures.end());
 	return nintersections_helper<Figure>(figures.begin(), figures.end());
-}
-
-template <class InputIt>
-int nintersections_benchmark(InputIt figure_fst, InputIt figure_last)
-{
-	using Figure = typename std::iterator_traits<InputIt>::value_type;
-
-	std::vector<std::reference_wrapper<Figure>> figures(figure_fst, figure_last);
-	erase_not_valid_figures(figures);
-
-	return nintersections_helper_generic<Figure>(figures.begin(), figures.end());
 }
 
 template <class InputIt1, class InputIt2>
@@ -179,7 +170,7 @@ int ncrossintersections(InputIt1 a_fst, InputIt1 a_last,
 		figures_b.begin(), figures_b.end());
 }
 
-template <class InputIt>
+template <class InputIt, bool benchmark /* = false */ >
 IntersectionsTable
 build_intersections_table(InputIt figure_fst, InputIt figure_last)
 {
@@ -190,25 +181,29 @@ build_intersections_table(InputIt figure_fst, InputIt figure_last)
 	erase_not_valid_figures(figures);
 
 	IntersectionsTable intrsctns_table;
-	build_intersections_table_helper<Figure>(
-		figures.begin(), figures.end(), intrsctns_table);
+	if constexpr (benchmark) {
+		build_intersections_table_helper_generic<Figure>(
+			figures.begin(), figures.end(), intrsctns_table);
+	} else {
+		build_intersections_table_helper<Figure>(
+			figures.begin(), figures.end(), intrsctns_table);		
+	}
+
 	return intrsctns_table;
 }
 
-template <class InputIt>
-IntersectionsTable
-build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last)
+template <class InputIt, bool benchmark /* = false */ >
+std::set<int> get_intersected_figures_indices(InputIt figure_fst, InputIt figure_last)
 {
-	using Figure = typename std::iterator_traits<InputIt>::value_type;
-	
-	std::vector<FigureAndIndex<Figure>> figures;
-	init_figure_and_index_vec(figures, figure_fst, figure_last);
-	erase_not_valid_figures(figures);
+	auto intrsctns_table
+		= build_intersections_table<InputIt, benchmark>(figure_fst, figure_last);
+	std::set<int> intersected_trgs;
 
-	IntersectionsTable intrsctns_table;
-	build_intersections_table_helper_generic<Figure>(
-		figures.begin(), figures.end(), intrsctns_table);
-	return intrsctns_table;
+	for (auto& entry: intrsctns_table) {
+		intersected_trgs.insert(entry[0]);
+		intersected_trgs.insert(entry[1]);
+	}
+	return intersected_trgs;
 }
 
 

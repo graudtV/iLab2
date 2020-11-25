@@ -9,6 +9,7 @@
 #include <cmath>
 #include <array>
 #include <vector>
+#include <set>
 #include <variant>
 #include <iterator>
 
@@ -270,17 +271,14 @@ bool intersected(const Figure1& fst, const Figure2& snd);
  *  InputIt must be so, that a function bool intersected(*it1, *it2) is
  * defined. Figure must have method valid(), i.e. it->valid() is defined
  *  Figures, for which valid() returns false, are ignored 
+ *  If benchmark = true, generic algorithm O(n^2) is used
  *
  *  Complexity: O(n^2) in the worst case. For some figures
  * function uses more effective algorithm (if specialization of
  * nintersections_helper<>() is provided for this figure. See
  * geometry_intersections_impl.h) */
-template <class InputIt>
+template <class InputIt, bool benchmark = false>
 int nintersections(InputIt figure_fst, InputIt figure_last);
-
-/* Same as nintersections, but always uses generic algorithm O(n^2) */
-template <class InputIt>
-int nintersections_benchmark(InputIt figure_fst, InputIt figure_last);
 
 /*  Caclulates number of intersections between two groups
  * of geometric objects
@@ -299,15 +297,23 @@ using IntersectionsTable = std::vector<std::array<int, 2>>;
  * have a corresponding entry in a table, which is a pair of these figures
  * indices. Indices starts from 0.
  *  InputIt must satisfy the same criteria as for nintersections()
- *  Figures, for which valid() returns false, are ignored */
-template <class InputIt>
+ *  Figures, for which valid() returns false, are ignored
+ *  If benchmark = true, generic algorithm O(n^2) is used */
+template <class InputIt, bool benchmark = false>
 IntersectionsTable
 build_intersections_table(InputIt figure_fst, InputIt figure_last);
 
-/* Same as build_intersections_table(), but always uses generic algorithm O(n^2) */
-template <class InputIt>
-IntersectionsTable
-build_intersections_table_benchmark(InputIt figure_fst, InputIt figure_last);
+/*  Returns indices of all figures, which are intersected with any other one
+ *  If benchmark = true, generic algorithm O(n^2) is used*/
+template <class InputIt, bool benchmark = false>
+std::set<int>
+get_intersected_figures_indices(InputIt figure_fst, InputIt figure_last);
+
+/* Benchmark wrappers */
+template <class InputIt> const auto nintersections_benchmark = nintersections<InputIt, true>;
+template <class InputIt> const auto build_intersections_table_benchmark = build_intersections_table<InputIt, true>;
+template <class InputIt> const auto get_intersected_figures_indices_benchmark = get_intersected_figures_indices<InputIt, true>;
+
 
 } // Geometry namespace end
 
