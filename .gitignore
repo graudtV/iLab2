@@ -30,9 +30,8 @@
 *.exe
 *.out
 *.app
+
+#other
 .DS_Store
-1. Cache/bin/example
-1. Cache/bin/example
-1. Cache/bin/test/test_efficiency
-1. Cache/bin/test/test_lru
 bin/
+temp*
