@@ -1,3 +1,5 @@
+/* Implementation of Matrix methods */
+
 #ifndef MATHS_MATRIX_IMPL_H_
 #define MATHS_MATRIX_IMPL_H_
 
@@ -7,83 +9,43 @@
 namespace Maths {
 
 template <class T>
-Matrix<T>::Matrix(size_t rows, size_t columns) :
-	m_nrows(rows),
-	m_ncolumns(columns),
-	m_data(new T*[rows])
-{
-	for (T **p = m_data; p != m_data + m_nrows; ++p)
-		*p = new T[m_ncolumns]{};
-}
+Matrix<T>::Matrix(size_t rows, size_t columns, const T& value /* = T{} */) :
+	Matrix(rows, columns, [&](size_t, size_t) { return value; } ) {}
 
 template <class T>
 Matrix<T>::Matrix(const Matrix& other) :
-	m_nrows(other.m_nrows),
-	m_ncolumns(other.m_ncolumns),
-	m_data(new T*[other.m_nrows])
-{
-	for (T **p = m_data, **p2 = other.m_data; p != m_data + m_nrows; ++p, ++p2) {
-		*p = new T[m_ncolumns];
-		for (T *q = *p, *q2 = *p2; q != *p + m_ncolumns; ++q, ++q2)
-			*q = *q2;
-	}
-}
+	Matrix(other.m_nrows, other.m_ncolumns,
+		[&](size_t i, size_t j) { return other.m_data[i][j]; } ) {}
 
-template <class T>
-Matrix<T>::~Matrix()
+/*  value_generator takes row and column indices (in such order)
+ * and generate some value, which will be put into matrix
+ *  value_generator must have defined behaviour for each row from 0 to rows-1
+ * and each column from 0 to columns-1. */
+template <class T> inline
+Matrix<T>::Matrix(size_t rows, size_t columns, std::function<T(size_t, size_t)> value_generator) :
+	MatrixBuf<T>(rows, columns)
 {
-	for (T **p = m_data; p != m_data + m_nrows; ++p)
-		delete [] *p;
-	delete [] m_data;
-}
-
-template <class T>
-Matrix<T>& Matrix<T>::operator =(const Matrix& other)
-	{ return *this = Matrix<T>(other); }
-
-template <class T>
-Matrix<T>& Matrix<T>::operator =(Matrix&& other) noexcept
-{
-	std::swap(m_nrows, other.m_nrows);
-	std::swap(m_ncolumns, other.m_ncolumns);
-	std::swap(m_data, other.m_data);
-	return *this;
-}
-
-template <class T>
-void Matrix<T>::fill_with(const T& value)
-{
-	for (T **p = m_data; p != m_data + m_nrows; ++p)
-		for (T *q = *p; q != *p + m_ncolumns; ++q)
-			*q = value;
+	for (size_t i = 0; i < m_nrows; ++i)
+		for (size_t j = 0; j < m_ncolumns; ++j) {
+			details::construct(&m_data[i][j], value_generator(i, j));
+			++m_nfilled_elems;
+		}
 }
 
 template <class T>
 template <class U>
 Matrix<U> Matrix<T>::convert_to() const
 {
-	Matrix<U> res(m_nrows, m_ncolumns);
-	for (int i = 0; i < m_nrows; ++i)
-		for (int j = 0; j < m_nrows; ++j)
-			res[i][j] = m_data[i][j];
-	return res;
+	return Matrix<U>(m_nrows, m_ncolumns,
+		[&](size_t i, size_t j) { return static_cast<U>(m_data[i][j]); } );
 }
 
 template <class T>
 Matrix<T> Matrix<T>::get_transposed() const
 {
-	Matrix<T> res(m_ncolumns, m_nrows);
-	for (int i = 0; i < m_nrows; ++i)
-		for (int j = 0; j < m_ncolumns; ++j)
-			res[j][i] = m_data[i][j];
-	return res;
+	return Matrix<T>(m_ncolumns, m_nrows,
+		[this](size_t i, size_t j) { return m_data[j][i]; } );
 }
-
-// template <class T>
-// void Matrix<T>::permute_rows(const Permutation& p)
-// {
-
-// }
 
 /* For not square matrices returns zero */
 template <class T>
@@ -123,15 +85,6 @@ Matrix<T>::LUP_decomposition() const
 template <class T>
 inline T absval(const T& value)
 	{ return (value >= 0) ? value : -value; }
-
-template <class T>
-Matrix<T> identity_matrix(size_t size)
-{
-	Matrix<T> res(size, size);
-	for (size_t i = 0; i < size; ++i)
-		res[i][i] = 1;
-	return res;
-}
 
 /* C = L+U-E, there L, U are from decomposition: PA = LU
  * If C is known, it is easy to extract L and U 

@@ -1,4 +1,4 @@
-ESSENTIAL_HEADERS=include/matrix.h include/matrix_impl.h include/type_conversions.h
+ESSENTIAL_HEADERS=include/*
 ESSENTIAL_OBJS=obj/matrix.o
 ESSENTIAL_FILES=$(ESSENTIAL_HEADERS) $(ESSENTIAL_OBJS)
 OTHER_FLAGS=-std=c++17 -I include
