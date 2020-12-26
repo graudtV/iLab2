@@ -78,11 +78,11 @@ T Matrix<T>::main_diagonal_elements_product() const
 }
 
 template <class T>
-template <class A /* = promote_to_algebraic_field_t<T> */>
+template <class A /* = promoted_value_type */>
 LUPDecomposition<A>
 Matrix<T>::LUP_decomposition() const
 {
-	Matrix<promoted_value_type> C;
+	Matrix<A> C;
 	Permutation P;
 	int n = LUP_decomposition_impl(C, P);
 	if (n == 0) // decomposition failed

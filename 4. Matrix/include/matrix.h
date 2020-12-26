@@ -78,7 +78,7 @@ public:
 		{ std::swap(m_data[i], other.m_data[j]); }
 	// void permute_rows(const Permutation& p);
 
-	template <class A = promote_to_algebraic_field_t<T>>
+	template <class A = promoted_value_type>
 	LUPDecomposition<A> LUP_decomposition() const;
 
 	static Matrix create_identity_matrix(size_t size)
