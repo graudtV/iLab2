@@ -157,12 +157,7 @@ LUPDecomposition<A>::U() const
 {
 	assert(m_valid);
 	const size_t n = m_C.nrows();
-
-	Matrix<A> res(n, n);
-	for (size_t i = 0; i < n; ++i)
-		for (size_t j = i; j < n; ++j)
-			res[i][j] = m_C[i][j];
-	return res;
+	return Matrix<A>(n, n, [&](size_t i, size_t j) { return (i > j) ? m_C[i][j] : 0; } );
 }
 
 } // Maths namespace end
