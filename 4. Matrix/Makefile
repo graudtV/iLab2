@@ -3,9 +3,9 @@ ESSENTIAL_OBJS=obj/matrix.o
 ESSENTIAL_FILES=$(ESSENTIAL_HEADERS) $(ESSENTIAL_OBJS)
 OTHER_FLAGS=-std=c++17 -I include
 
-.PHONY: all init clean compile-essential-objs io-tests
+.PHONY: all init clean compile-essential-objs io-tests unit-tests
 
-all: init compile-essential-objs io-tests
+all: init compile-essential-objs io-tests unit-tests
 
 init:
 	mkdir -p obj bin obj/examples bin/examples obj/test bin/test
@@ -15,6 +15,9 @@ clean:
 
 io-tests: bin/test/determinant
 	$(call dir-cmp-outputs,./bin/test/determinant,test/data,.input,.output)
+
+unit-tests: bin/test/unit_test
+	./bin/test/unit_test
 
 compile-essential-objs: $(ESSENTIAL_FILES)
 

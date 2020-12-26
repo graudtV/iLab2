@@ -32,6 +32,14 @@ Matrix<T>::Matrix(size_t rows, size_t columns, std::function<T(size_t, size_t)> 
 		}
 }
 
+/* If std::distance(fst, last) > rows * columns, extra values are ignored 
+ * If std::distance(fst, last) < rows * columns, default values T{} are appended */
+template <class T>
+template <class InputIt>
+Matrix<T>::Matrix(size_t rows, size_t columns, InputIt fst, InputIt last) :
+	Matrix(rows, columns,
+		[&](size_t, size_t) { return (fst == last) ? T{} : *fst++; } ) {}
+
 template <class T>
 template <class U>
 Matrix<U> Matrix<T>::convert_to() const
@@ -119,7 +127,7 @@ int Matrix<T>::LUP_decomposition_impl(Matrix<A>& C, Permutation& P) const
 				C.swap_rows(pivot_idx, j);
 			}
 			for (size_t i = j + 1; i < m_nrows; ++i) {
-				C[i][j] /= pivot_value;
+				C[i][j] /= C[j][j]; // pivot_value = abs(C[j][j])
 				for(size_t k = j + 1; k < m_nrows; ++k) 
 					C[i][k] -= C[i][j] * C[j][k];
 			}

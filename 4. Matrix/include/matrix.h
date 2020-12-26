@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <functional>
+#include <initializer_list>
 #include "type_conversions.h"
 #include "memory_control.h"
 
@@ -31,12 +32,19 @@ public:
 	using ConstProxyRow = const ProxyRow;
 
 	Matrix() = default;
-	Matrix(size_t rows, size_t columns, const T& value = T{});
+	explicit Matrix(size_t rows, size_t columns, const T& value = T{});
 	Matrix(size_t rows, size_t columns, std::function<T(size_t, size_t)> value_generator);
+	Matrix(size_t rows, size_t columns, std::initializer_list<T> init) : // extra values are ignored. If not enough, T{} appended
+		Matrix(rows, columns, init.begin(), init.end()) {}
+
+	template <class InputIt>
+	Matrix(size_t rows, size_t columns, InputIt fst, InputIt last);
+	
 	~Matrix() = default;
 	Matrix(const Matrix& other);
 	Matrix(Matrix&& other) : MatrixBuf<T>() { this->swap(other); }
-	Matrix& operator =(const Matrix& other) { return *this = Matrix<T>(other); }
+	Matrix& operator =(const Matrix& other) { return *this = Matrix(other); }
+	Matrix& operator =(std::initializer_list<T> init) { return *this = Matrix(m_nrows, m_ncolumns, init); } // doesn't change matrix size
 	Matrix& operator =(Matrix&& other) { this->swap(other); return *this; }
 
 	template <class U>
@@ -98,6 +106,7 @@ private:
 };
 
 
+/* Stores permutation of natural numbers from 0 to nvalues-1 */
 class Permutation final {
 public:
 	using ConstIterator = typename std::vector<size_t>::const_iterator;
@@ -107,8 +116,10 @@ public:
 	explicit Permutation(size_t nvalues) { reset(nvalues); }
 
 	void reset(size_t nvalues);
-	size_t nvalues() const { return m_numbers.size(); }
 	void swap(int i, int j) { std::swap(m_numbers[i], m_numbers[j]); }
+
+	size_t nvalues() const { return m_numbers.size(); }
+	size_t operator [](size_t i) const { return m_numbers[i]; }
 
 	ConstIterator begin() const { return m_numbers.cbegin(); }
 	ConstIterator end() const { return m_numbers.cend(); }
