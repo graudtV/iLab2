@@ -51,6 +51,7 @@ $(eval $(1)=$(_targets))
 $(foreach test,$(value _targets),$(eval $(call _io-individual-test-template,$(test), $(2))))
 endef
 
+# $(1) - name of group, $(2) - program to run, $(3) - directory with data
 create-io-tests = $(eval $(call _io-tests-template,$(1),$(2),$(3)))
 
 
@@ -64,3 +65,7 @@ $(2)._unit-test: $(2)
 endef
 
 add-unit-test-to-group=$(eval $(call _unit-test-template,$(1),$(2)))
+
+#---- other ---- #
+%._run: %
+	$<
