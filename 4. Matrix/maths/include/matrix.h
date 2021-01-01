@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <initializer_list>
+#include <numeric> // for std::iota
 #include "type_conversions.h"
 #include "memory_control.h"
 
@@ -120,7 +121,11 @@ public:
 	Permutation() {}
 	explicit Permutation(size_t nvalues) { reset(nvalues); }
 
-	void reset(size_t nvalues);
+	void reset(size_t nvalues)
+	{
+		m_numbers.resize(nvalues);
+		std::iota(m_numbers.begin(), m_numbers.end(), 0);
+	}
 	void swap(int i, int j) { std::swap(m_numbers[i], m_numbers[j]); }
 
 	size_t nvalues() const { return m_numbers.size(); }

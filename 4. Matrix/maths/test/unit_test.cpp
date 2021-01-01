@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "matrix.h"
-#include "../../catch.hpp"
+#include "../../../catch.hpp"
 
 template class Maths::Matrix<int>;
 template class Maths::Matrix<float>;
