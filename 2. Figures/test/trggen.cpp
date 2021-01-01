@@ -6,11 +6,11 @@
 
 namespace {
 
-// from 0 to 1
+/* from 0 to 1 */
 float rnd_float()
 	{ return static_cast<float>(rand()) / static_cast<float>(RAND_MAX); }
 
-// from min to max
+/* from min to max */
 float rnd_float(float min, float max)
 	{ return rnd_float() * (max - min) + min; }
 

@@ -77,6 +77,7 @@ T Matrix<T>::main_diagonal_elements_product() const
 	return res;
 }
 
+/* throws DecompostionError if decomposition doesn't exist */
 template <class T>
 template <class A /* = promoted_value_type */>
 LUPDecomposition<A>
@@ -86,7 +87,7 @@ Matrix<T>::LUP_decomposition() const
 	Permutation P;
 	int n = LUP_decomposition_impl(C, P);
 	if (n == 0) // decomposition failed
-		return LUPDecomposition<A>();
+		throw DecompositionError();
 	return LUPDecomposition(C, P);
 }
 
@@ -141,7 +142,6 @@ template <class A>
 Matrix<A>
 LUPDecomposition<A>::L() const
 {
-	assert(m_valid);
 	const size_t n = m_C.nrows();
 
 	Matrix<A> res = identity_matrix<A>(n);
@@ -155,7 +155,6 @@ template <class A>
 Matrix<A>
 LUPDecomposition<A>::U() const
 {
-	assert(m_valid);
 	const size_t n = m_C.nrows();
 	return Matrix<A>(n, n, [&](size_t i, size_t j) { return (i > j) ? m_C[i][j] : 0; } );
 }

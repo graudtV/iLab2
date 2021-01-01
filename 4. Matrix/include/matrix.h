@@ -27,6 +27,7 @@ private:
 public:
 	using value_type = T;
 	using promoted_value_type = promote_to_algebraic_field_t<T>;
+	using default_decomposition_type = LUPDecomposition<promoted_value_type>;
 
 	struct ProxyRow;
 	using ConstProxyRow = const ProxyRow;
@@ -42,10 +43,10 @@ public:
 	
 	~Matrix() = default;
 	Matrix(const Matrix& other);
-	Matrix(Matrix&& other) : MatrixBuf<T>() { this->swap(other); }
+	Matrix(Matrix&& other) noexcept : MatrixBuf<T>() { this->swap(other); }
 	Matrix& operator =(const Matrix& other) { return *this = Matrix(other); }
 	Matrix& operator =(std::initializer_list<T> init) { return *this = Matrix(m_nrows, m_ncolumns, init); } // doesn't change matrix size
-	Matrix& operator =(Matrix&& other) { this->swap(other); return *this; }
+	Matrix& operator =(Matrix&& other) noexcept { this->swap(other); return *this; }
 
 	template <class U>
 	explicit Matrix(const Matrix<U>& other) :
@@ -83,6 +84,10 @@ public:
 
 	static Matrix create_identity_matrix(size_t size)
 		{ return Matrix(size, size, [](size_t i, size_t j) { return (i == j) ? T{1} : T{}; }); }
+
+	struct DecompositionError : public std::runtime_error {
+		DecompositionError() : std::runtime_error("decomposition not exist") {}
+	};
 
 private:
 	template <class A> int LUP_decomposition_impl(Matrix<A>& C, Permutation& P) const;
@@ -141,18 +146,16 @@ class LUPDecomposition final {
 public:
 	Matrix<A> L() const;
 	Matrix<A> U() const;
-	Matrix<A> C() const { assert(valid()); return m_C; }
-	Permutation P_vec() const { assert(valid()); return m_P_vec; }
-	bool valid() const { return m_valid; }
+	Matrix<A> C() const { return m_C; }
+	Permutation P_vec() const { return m_P_vec; }
 
-	LUPDecomposition() : m_valid(false) {}
+	LUPDecomposition() {}
 	LUPDecomposition(const Matrix<A>& C, const Permutation& P) :
-		m_C(C), m_P_vec(P), m_valid(true) { assert(C.is_square()); }
+		m_C(C), m_P_vec(P) { assert(C.is_square()); }
 
 private:
 	Matrix<A> m_C;
 	Permutation m_P_vec;
-	bool m_valid;
 };
 
 template <class T>

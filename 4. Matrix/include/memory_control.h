@@ -70,7 +70,7 @@ protected:
 	size_t m_ncolumns;
 	size_t m_nfilled_elems;
 
-	MatrixBuf() : m_data(0), m_nrows(0), m_ncolumns(0), m_nfilled_elems(0) {}
+	MatrixBuf() noexcept : m_data(0), m_nrows(0), m_ncolumns(0), m_nfilled_elems(0) {}
 	MatrixBuf(size_t rows, size_t columns) :
 		m_data(alloc_raw_square_mem<T>(rows, columns)),
 		m_nrows(rows),

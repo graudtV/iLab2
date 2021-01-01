@@ -117,12 +117,18 @@ operator <<(std::ostream& os, const Maths::Matrix<T>& m)
 
 TEST_CASE("LUP_decomposition() and determinant()", "[Matrix]")
 {
-	Maths::Matrix<int> m { 3, 3, {
-		12,  -2,  1,
-		36,  0,   7,
-		180, 12,  38 }};
-
-	auto decomposition = m.LUP_decomposition();
-	CHECK(decomposition.valid());
-	CHECK(m.determinant() == -360);
+	SECTION ("not singular matrix") {
+		Maths::Matrix<int> m { 3, 3, {
+			12,  -2,  1,
+			36,  0,   7,
+			180, 12,  38 }};
+		Maths::Matrix<int>::default_decomposition_type decomposition;
+		CHECK_NOTHROW(decomposition = m.LUP_decomposition());
+		CHECK(m.determinant() == -360);
+	}
+	SECTION ("singular matrix") {
+		Maths::Matrix<int> m(3, 3);
+		CHECK_THROWS_AS(m.LUP_decomposition(), Maths::Matrix<int>::DecompositionError);
+		CHECK(m.determinant() == 0);
+	}
 }
