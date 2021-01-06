@@ -75,9 +75,12 @@ public:
 	T determinant() const;
 	void transpose() { *this = get_transposed(); }
 	T main_diagonal_elements_product() const;
-	void swap_rows(size_t i, size_t j) { std::swap(m_data[i], m_data[j]); }
-	void swap_rows(size_t i, Matrix& other, size_t j)
-		{ std::swap(m_data[i], other.m_data[j]); }
+
+	void swap_rows(size_t i, size_t j)
+		{ std::swap(m_data[i], m_data[j]); }
+	void swap_rows(size_t i, Matrix& other, size_t j);
+
+	Matrix<T> cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max);
 	// void permute_rows(const Permutation& p);
 
 	template <class A = promoted_value_type>
@@ -94,6 +97,12 @@ private:
 	template <class A> int LUP_decomposition_impl(Matrix<A>& C, Permutation& P) const;
 };
 
+template <class T>
+bool operator ==(const Matrix<T>& fst, const Matrix<T>& snd);
+
+template <class T>
+bool operator !=(const Matrix<T>& fst, const Matrix<T>& snd)
+	{ return !(fst == snd); }
 
 template <class T>
 class Matrix<T>::ProxyRow final {

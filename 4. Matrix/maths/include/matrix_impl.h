@@ -77,6 +77,38 @@ T Matrix<T>::main_diagonal_elements_product() const
 	return res;
 }
 
+template <class T>
+void Matrix<T>::swap_rows(size_t i, Matrix& other, size_t j)
+{
+	if (m_ncolumns != other.m_ncolumns)
+		throw std::invalid_argument("Matrix::swap_rows(): different number of columns");
+	std::swap(m_data[i], other.m_data[j]);
+}
+
+/* 0 <= row_min <= row_max <= nrows() - 1
+ * 0 <= column_min <= column_max <= ncolumns() - 1 */
+template <class T>
+Matrix<T> Matrix<T>::cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max)
+{
+	if (row_min >= row_max || row_max >= m_nrows
+		|| column_min >= column_max || column_max >= m_ncolumns)
+		throw std::invalid_argument("Matrix::cut(): range to be cut is invalid");
+	return Matrix(row_max - row_min + 1, column_max - column_min + 1,
+		[=](size_t i, size_t j) { return m_data[row_min + i][column_min + j]; });
+}
+
+template <class T>
+bool operator ==(const Matrix<T>& fst, const Matrix<T>& snd)
+{
+	if (fst.nrows() != snd.nrows() || fst.ncolumns() != snd.ncolumns())
+		return false;
+	for (size_t i = 0; i < fst.nrows(); ++i)
+		for (size_t j = 0; j < fst.ncolumns(); ++j)
+			if (fst[i][j] != snd[i][j])
+				return false;
+	return true;
+}
+
 /* throws DecompostionError if decomposition doesn't exist */
 template <class T>
 template <class A /* = promoted_value_type */>

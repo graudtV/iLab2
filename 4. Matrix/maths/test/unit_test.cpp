@@ -82,6 +82,31 @@ TEST_CASE("main_diagonal_elements_product", "[Matrix]")
 	CHECK(m.main_diagonal_elements_product() == 0.0175f);
 }
 
+TEST_CASE("operator ==, operator !=", "[Matrix]")
+{
+	CHECK(Maths::identity_matrix<int>(0) == Maths::identity_matrix<int>(0));
+	CHECK(Maths::identity_matrix<int>(1) == Maths::identity_matrix<int>(1));
+	CHECK(Maths::identity_matrix<int>(5) == Maths::identity_matrix<int>(5));
+	CHECK(Maths::identity_matrix<int>(5) != Maths::identity_matrix<int>(6));
+	auto m = Maths::identity_matrix<int>(5);
+	m[2][3] = 2;
+	CHECK(m != Maths::identity_matrix<int>(5));
+}
+
+TEST_CASE("cut", "[Matrix]")
+{
+	Maths::Matrix<int> m { 4, 4, {
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		9, 10, 11, 12,
+		13, 14, 15, 16 }};
+	Maths::Matrix<int> expected { 2, 3, {
+		6, 7, 8,
+		10, 11, 12
+	}};
+	CHECK(expected == m.cut(1, 2, 1, 3));
+}
+
 TEMPLATE_TEST_CASE("initializer_list", "[Matrix]", int, float, double)
 {
 	Maths::Matrix<int> m(2, 2);
