@@ -1,13 +1,35 @@
 #include <iostream>
+#include <cstdlib>
+#include <unistd.h>
+#include <iomanip>
 #include "electronic_circuit.h"
 #include "scan.h"
 
-int main()
+void usage_error(const char *msg = "")
+{
+	fprintf(stderr, "usage: \n"
+		"\tn\t--\tprint max node index and number of components\n"
+		"\tm\t--\tdump incidence matrix\n"
+		"\tI\t--\tprint currents in components (default option, if nothing specified)\n");
+	exit(EXIT_FAILURE);
+}
+
+int main(int argc, char *argv[])
 try {
 	int opt;
-	int opt_dump_incidence_matrix = 1;
-	int opt_dump_nodes_and_components = 1;
-	int opt_dump_currents = 1;
+	int opt_dump_nodes_and_components = 0;
+	int opt_dump_incidence_matrix = 0;
+	int opt_dump_currents = 0;
+
+	while ((opt = getopt(argc, argv, "Inm")) != -1)
+		switch (opt) {
+		case 'n': opt_dump_nodes_and_components = 1; break;
+		case 'm': opt_dump_incidence_matrix = 1; break;
+		case 'I': opt_dump_currents = 1; break;
+		default: usage_error();
+		}
+	if (!opt_dump_nodes_and_components && !opt_dump_incidence_matrix)
+		opt_dump_currents = 1;
 
 	Physics::ElectronicCircuit circuit;
 
@@ -26,22 +48,22 @@ try {
 			>> scn::skip_spaces >> "," >> scn::skip_spaces >> R;
 		try {
 			scan >> scn::skip_spaces >> scn::end_of_text;
-			printf("resistor\n");
 			circuit.add_component(node1, node2, Physics::make_resistor(R));
 			continue;
 		} catch (scn::scan_error& e) {}
-		printf("voltage\n");
 		scan >> ";" >> scn::skip_spaces >> E >> scn::skip_spaces
 			>> "V" >> scn::skip_spaces >> scn::end_of_text;
 		circuit.add_component(node1, node2, Physics::make_voltage_src(R, E)); // resistor is voltage source with E = 0
 	}
 
 	if (opt_dump_nodes_and_components) {
-		printf("%zu\n", circuit.ncomponents());
-		printf("%zu\n", circuit.max_node_idx());	
+		printf("max_node_index = %zu\n", circuit.max_node_idx());
+		printf("number_of_components = %zu\n", circuit.ncomponents());
 	}
-	if (opt_dump_incidence_matrix)
-		circuit.get_incidence_matrix().dump();
+	if (opt_dump_incidence_matrix) {
+		std::cout << std::left;
+		circuit.get_incidence_matrix().dump(std::cout, 2);
+	}
 	if (opt_dump_currents) {
 		for (int comp_idx = 0; comp_idx != circuit.ncomponents(); ++comp_idx) {
 			auto comp_data = circuit.get_component_data(comp_idx);

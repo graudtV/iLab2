@@ -40,31 +40,27 @@ endef
 
 # determinant-tests: $(determinant-tests-targets)
 define _io-individual-test-template
-$(1):
+$(1): $(word 1,$(2))
 	$(call run-diff-test,$(2),$(1))
 endef
 
-define _io-tests-template
+# $(1) - name of group, $(2) - program to run, $(3) - directory with data
+define create-io-tests
 $(eval _targets = $(addsuffix .test, $(basename $(wildcard $(3)/*.test-in))))
 PHONY: $(_targets)
 $(eval $(1)=$(_targets))
-$(foreach test,$(value _targets),$(eval $(call _io-individual-test-template,$(test), $(2))))
+$(foreach test,$(value _targets),$(eval $(call _io-individual-test-template,$(test),$(2))))
 endef
-
-# $(1) - name of group, $(2) - program to run, $(3) - directory with data
-create-io-tests = $(eval $(call _io-tests-template,$(1),$(2),$(3)))
-
 
 #---- unit-tests impl. ----#
 
-define _unit-test-template
-echo test $(1) : $(2)
+define _individual-unit-test-template
 $(1)+=$(2)._unit-test
 $(2)._unit-test: $(2)
 	$(2)
 endef
 
-add-unit-test-to-group=$(eval $(call _unit-test-template,$(1),$(2)))
+add-unit-test-to-group=$(eval $(call _individual-unit-test-template,$(1),$(2)))
 
 #---- other ---- #
 %._run: %
