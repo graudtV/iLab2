@@ -1,5 +1,5 @@
 ESSENTIAL_HEADERS=include/*
-EXTRA_FLAGS=-I include -I ../maths/include -std=c++17
+EXTRA_FLAGS=-I include -I ../maths/include -I scan/ -std=c++17
 
 include ../../basic_tests.mk
 
