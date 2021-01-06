@@ -8,7 +8,7 @@
 void usage_error(const char *msg = "")
 {
 	fprintf(stderr, "usage: \n"
-		"\tn\t--\tprint max node index and number of components\n"
+		"\tn\t--\tprint number of nodes and components\n"
 		"\tm\t--\tdump incidence matrix\n"
 		"\tI\t--\tprint currents in components (default option, if nothing specified)\n");
 	exit(EXIT_FAILURE);
@@ -57,8 +57,8 @@ try {
 	}
 
 	if (opt_dump_nodes_and_components) {
-		printf("max_node_index = %zu\n", circuit.max_node_idx());
-		printf("number_of_components = %zu\n", circuit.ncomponents());
+		printf("nodes: %zu\n", circuit.nnodes());
+		printf("components: %zu\n", circuit.ncomponents());
 	}
 	if (opt_dump_incidence_matrix) {
 		std::cout << std::left;
