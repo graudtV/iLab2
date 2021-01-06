@@ -2,12 +2,6 @@
 #include "electric_circuit.h"
 #include "scan.h"
 
-void usage_error(const char *errmsg)
-{
-	std::cerr << errmsg << std::endl;
-	exit(EXIT_FAILURE);
-}
-
 int main()
 try {
 	Physics::ElectronicCircuit circuit;
