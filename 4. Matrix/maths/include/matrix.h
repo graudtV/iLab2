@@ -7,6 +7,7 @@
 #include <functional>
 #include <initializer_list>
 #include <numeric> // for std::iota
+#include <iostream> // for std::cout
 #include "type_conversions.h"
 #include "memory_control.h"
 
@@ -82,6 +83,8 @@ public:
 
 	Matrix<T> cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max);
 	// void permute_rows(const Permutation& p);
+
+	void dump(std::ostream& os = std::cout, int field_width = 10) const; // prints data
 
 	template <class A = promoted_value_type>
 	LUPDecomposition<A> LUP_decomposition() const;

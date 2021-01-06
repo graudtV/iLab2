@@ -1,4 +1,5 @@
 ESSENTIAL_HEADERS=include/*
+ESSENTIAL_OBJS=obj/electronic_circuit.o
 EXTRA_FLAGS=-I include -I ../maths/include -I scan/ -std=c++17
 
 include ../../basic_tests.mk

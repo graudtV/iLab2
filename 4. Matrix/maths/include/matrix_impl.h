@@ -4,7 +4,7 @@
 #define MATHS_MATRIX_IMPL_H_
 
 #include <cmath>
-#include <iostream>
+#include <iomanip>
 
 namespace Maths {
 
@@ -107,6 +107,16 @@ bool operator ==(const Matrix<T>& fst, const Matrix<T>& snd)
 			if (fst[i][j] != snd[i][j])
 				return false;
 	return true;
+}
+
+template <class T>
+void Matrix<T>::dump(std::ostream& os /* = std::cout */, int field_width /* = 10 */) const
+{
+	for (size_t i = 0; i < m_nrows; ++i) {
+		for (size_t j = 0; j < m_ncolumns; ++j)
+			os << std::setw(field_width) << m_data[i][j] << " ";
+		os << std::endl;
+	}
 }
 
 /* throws DecompostionError if decomposition doesn't exist */

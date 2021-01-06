@@ -1,7 +1,8 @@
-#ifndef PHYSICS_ELECTRIC_CIRCUIT_H_
-#define PHYSICS_ELECTRIC_CIRCUIT_H_
+#ifndef PHYSICS_ELECTRONIC_CIRCUIT_H_
+#define PHYSICS_ELECTRONIC_CIRCUIT_H_
 
 #include <vector>
+#include <set>
 #include "matrix.h"
 
 namespace Physics {
@@ -21,17 +22,17 @@ public:
 	bool is_ideal_current_src() const { return A == 0; }
 };
 
-AffineComponent make_resistor(double R) { return {1, R, 0}; }
-AffineComponent make_voltage_src(double E, double R = 0) { return {1, R, E}; }
-AffineComponent make_current_src(double I) { return {0, 1, -I}; }
-AffineComponent make_jumper() { return {1, 0, 0}; }
+inline AffineComponent make_resistor(double R) { return {1, R, 0}; }
+inline AffineComponent make_voltage_src(double E, double R = 0) { return {1, R, E}; }
+inline AffineComponent make_current_src(double I) { return {0, 1, -I}; }
+inline AffineComponent make_jumper() { return {1, 0, 0}; }
 
 
 class ElectronicCircuit final {
 public:
 	using node_idx_t = size_t; // unique number of node in particular circuit
 	using comp_idx_t = size_t; // component index - unique number of component in particular circuit
-	
+
 	struct ComponentEntry {
 		node_idx_t node1, node2;
 		AffineComponent component;
@@ -45,6 +46,8 @@ public:
 	comp_idx_t add_component(node_idx_t node1, node_idx_t node2, AffineComponent c)
 	{
 		m_comps.push_back({node1, node2, c});
+		m_used_nodes.insert(node1);
+		m_used_nodes.insert(node2);
 		return m_comps.size() - 1;
 	}
 
@@ -54,12 +57,17 @@ public:
 	
 	ComponentEntry get_component_data(comp_idx_t c) const { return m_comps.at(c); }
 
-	size_t ncomponents() const { return m_comps.size(); }
+	node_idx_t max_node_idx() const
+		{ return (m_used_nodes.empty()) ? 0 : *m_used_nodes.rbegin() ; }
+	comp_idx_t ncomponents() const { return m_comps.size(); }
+
+	Maths::Matrix<int> get_incidence_matrix() const;
 
 private:
 	std::vector<ComponentEntry> m_comps;
+	std::set<node_idx_t> m_used_nodes;
 };
 
 } // Physics namespace end
 
-#endif // PHYSICS_ELECTRIC_CIRCUIT_H_
+#endif // PHYSICS_ELECTRONIC_CIRCUIT_H_
