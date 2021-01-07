@@ -35,24 +35,24 @@ ElectronicCircuit::get_incidence_matrix() const
 	return mrx;
 }
 
-// Maths::Matrix<double>
-// ElectronicCircuit::get_voltage_srcs_matrix() const
-// {
-// 	Maths::Matrix<double> mrx(ncomponents(), 1);
-// 	for (size_t i = 0; i < ncomponents(); ++i)
-// 		if (!m_comps[i].component.is_ideal_current_src())
-// 			mrx[i][0] = m_comps[i].component.get_EMF();
-// 	return mrx;
-// }
+Maths::Matrix<double>
+ElectronicCircuit::get_voltage_srcs_matrix() const
+{
+	Maths::Matrix<double> mrx(ncomponents(), 1);
+	for (size_t i = 0; i < ncomponents(); ++i)
+		if (!m_comps[i].component.is_ideal_current_src())
+			mrx[i][0] = m_comps[i].component.get_EMF();
+	return mrx;
+}
 
-// Maths::Matrix<double>
-// ElectronicCircuit::get_current_srcs_matrix() const
-// {
-// 	Maths::Matrix<double> mrx(ncomponents(), 1);
-// 	for (size_t i = 0; i < ncomponents(); ++i)
-// 		if (m_comps[i].component.is_ideal_current_src())
-// 			mrx[i][0] = m_comps[i].component.get_short_circuit_current();
-// 	return mrx;
-// }
+Maths::Matrix<double>
+ElectronicCircuit::get_current_srcs_matrix() const
+{
+	Maths::Matrix<double> mrx(ncomponents(), 1);
+	for (size_t i = 0; i < ncomponents(); ++i)
+		if (m_comps[i].component.is_ideal_current_src())
+			mrx[i][0] = m_comps[i].component.get_short_circuit_current();
+	return mrx;
+}
 
 } // Physics namespace end
