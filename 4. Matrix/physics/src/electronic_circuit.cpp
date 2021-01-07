@@ -55,4 +55,16 @@ ElectronicCircuit::get_current_srcs_matrix() const
 	return mrx;
 }
 
+/* diagonal elements are conductances, other are 0 */
+Maths::Matrix<double>
+ElectronicCircuit::get_square_conductance_matrix() const
+{
+	Maths::Matrix<double> mrx(ncomponents(), ncomponents());
+	for (size_t i = 0; i < ncomponents(); ++i)
+		if (!m_comps[i].component.is_ideal_current_src())
+			mrx[i][i] = m_comps[i].component.get_diff_resistance();
+	return mrx;
+}
+
+
 } // Physics namespace end

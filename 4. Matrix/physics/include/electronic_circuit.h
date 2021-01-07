@@ -50,7 +50,7 @@ public:
 		ComponentData(node_key_t n1, node_key_t n2, AffineComponent c) :
 			node1(n1), node2(n2), component(c) {}
 	};
-	
+
 public:
 	ElectronicCircuit() {}
 
@@ -68,7 +68,7 @@ public:
 	Maths::Matrix<int> get_incidence_matrix() const;
 	Maths::Matrix<double> get_voltage_srcs_matrix() const;
 	Maths::Matrix<double> get_current_srcs_matrix() const;
-	Maths::Matrix<double> get_conductance_matrix() const;
+	Maths::Matrix<double> get_square_conductance_matrix() const;
 
 private:
 	struct HiddenComponentEntry;

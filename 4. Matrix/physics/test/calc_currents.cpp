@@ -12,6 +12,7 @@ void usage_error(const char *msg = "")
 		"\tm\t--\tdump incidence matrix\n"
 		"\tv\t--\tdump voltage sources matrix\n"
 		"\ti\t--\tdump current sources matrix\n"
+		"\tg\t--\tdump conductances matrix\n"
 		"\tI\t--\tprint currents in components (default option, if nothing specified)\n");
 	exit(EXIT_FAILURE);
 }
@@ -23,19 +24,22 @@ try {
 	int opt_dump_incidence_matrix = 0;
 	int opt_dump_voltage_srcs_matrix = 0;
 	int opt_dump_current_srcs_matrix = 0;
+	int opt_dump_conductance_matrix = 0;
 	int opt_dump_currents = 0;
 
-	while ((opt = getopt(argc, argv, "nmviI")) != -1)
+	while ((opt = getopt(argc, argv, "nmvigI")) != -1)
 		switch (opt) {
 		case 'n': opt_dump_nodes_and_components = 1; break;
 		case 'm': opt_dump_incidence_matrix = 1; break;
 		case 'v': opt_dump_voltage_srcs_matrix = 1; break;
 		case 'i': opt_dump_current_srcs_matrix = 1; break;
+		case 'g': opt_dump_conductance_matrix = 1; break;
 		case 'I': opt_dump_currents = 1; break;
 		default: usage_error();
 		}
 	if (!opt_dump_nodes_and_components && !opt_dump_incidence_matrix
-		&& !opt_dump_voltage_srcs_matrix && !opt_dump_current_srcs_matrix)
+		&& !opt_dump_voltage_srcs_matrix && !opt_dump_current_srcs_matrix
+		&& !opt_dump_conductance_matrix)
 		opt_dump_currents = 1;
 
 	Physics::ElectronicCircuit circuit;
@@ -75,6 +79,8 @@ try {
 		circuit.get_voltage_srcs_matrix().dump(std::cout, 2);
 	if (opt_dump_current_srcs_matrix)
 		circuit.get_current_srcs_matrix().dump(std::cout, 2);
+	if (opt_dump_conductance_matrix)
+		circuit.get_square_conductance_matrix().dump(std::cout, 2);
 	if (opt_dump_currents) {
 		for (int comp_idx = 0; comp_idx != circuit.ncomponents(); ++comp_idx) {
 			auto comp_data = circuit.get_component_data(comp_idx);
