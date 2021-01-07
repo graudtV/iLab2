@@ -88,7 +88,8 @@ void Matrix<T>::swap_rows(size_t i, Matrix& other, size_t j)
 /* 0 <= row_min <= row_max <= nrows() - 1
  * 0 <= column_min <= column_max <= ncolumns() - 1 */
 template <class T>
-Matrix<T> Matrix<T>::cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max)
+Matrix<T> Matrix<T>::get_cut(size_t row_min, size_t row_max,
+	size_t column_min, size_t column_max) const
 {
 	if (row_min >= row_max || row_max >= m_nrows
 		|| column_min >= column_max || column_max >= m_ncolumns)
@@ -117,6 +118,54 @@ void Matrix<T>::dump(std::ostream& os /* = std::cout */, int field_width /* = 10
 			os << std::setw(field_width) << m_data[i][j] << " ";
 		os << std::endl;
 	}
+}
+
+template <class T>
+Matrix<T>& Matrix<T>::operator +=(const Matrix<T>& other) &
+{
+	fill_with_values( [&](size_t i, size_t j) { return m_data[i][j] + other.m_data[i][j]; } );
+	return *this;
+}
+
+template <class T>
+Matrix<T>& Matrix<T>::operator -=(const Matrix<T>& other) &
+{
+	fill_with_values( [&](size_t i, size_t j) { return m_data[i][j] - other.m_data[i][j]; } );
+	return *this;
+}
+
+/* may change matrix size */
+template <class T>
+Matrix<T>& Matrix<T>::operator *=(const Matrix<T>& other) &
+	{ return *this = *this * other; }
+
+template <class T>
+Matrix<T> operator +(const Matrix<T>& fst, const Matrix<T>& snd)
+{
+	if (fst.nrows() != snd.nrows() || fst.ncolumns() != snd.ncolumns())
+		throw IncompatibleSizeError();
+	return Matrix<T>(fst.nrows(), fst.ncolumns(), [&](size_t i, size_t j) { return fst[i][j] + snd[i][j]; } );
+}
+
+template <class T>
+Matrix<T> operator -(const Matrix<T>& fst, const Matrix<T>& snd)
+{
+	if (fst.nrows() != snd.nrows() || fst.ncolumns() != snd.ncolumns())
+		throw IncompatibleSizeError();
+	return Matrix<T>(fst.nrows(), fst.ncolumns(), [&](size_t i, size_t j) { return fst[i][j] - snd[i][j]; } );
+}
+
+template <class T>
+Matrix<T> operator *(const Matrix<T>& fst, const Matrix<T>& snd)
+{
+	if (fst.ncolumns() != snd.nrows())
+		throw IncompatibleSizeError();
+	Matrix<T> mrx(fst.nrows(), snd.ncolumns());
+	for (size_t i = 0; i < mrx.nrows(); ++i)
+		for (size_t j = 0; j < mrx.ncolumns(); ++j)
+			for (size_t k = 0; k < fst.ncolumns(); ++k)
+				mrx[i][j] += fst[i][k] * snd[k][j];
+	return mrx;
 }
 
 /* throws DecompostionError if decomposition doesn't exist */

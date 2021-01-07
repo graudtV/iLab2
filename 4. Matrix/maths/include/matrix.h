@@ -16,6 +16,17 @@ namespace Maths {
 class Permutation;
 template <class T> class LUPDecomposition;
 
+struct DecompositionError : public std::runtime_error {
+	DecompositionError() : std::runtime_error("decomposition not exist") {}
+};
+
+struct InvertionError : public std::runtime_error {
+	InvertionError() : std::runtime_error("invertion failure") {}
+};
+
+struct IncompatibleSizeError : public std::invalid_argument {
+	IncompatibleSizeError() : std::invalid_argument("arguments have incompatible size") {}
+};
 
 template <class T>
 class Matrix final : private details::MatrixBuf<T> {
@@ -58,43 +69,47 @@ public:
 	Matrix<T>& operator =(const Matrix<U>& other)
 		{ return *this = other.template convert_to<T>(); }	
 
-	/* cast matrix to another type */
-	template <class U> Matrix<U> convert_to() const;
-
+	/* generating new matrices */
+	template <class U> Matrix<U> convert_to() const; // cast matrix to another type
 	Matrix<T> get_transposed() const;
+	//Matrix<T> get_inverted() const;
+	Matrix<T> get_cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max) const;
 
+	/* accessing data */
 	ProxyRow operator [] (size_t i) { return {m_data[i], m_ncolumns}; }
 	ConstProxyRow operator [] (size_t i) const { return {m_data[i], m_ncolumns}; }
 
-	void fill_with(const T& value) { *this = Matrix(m_nrows, m_ncolumns, value); }
-
+	/* different values and algorithms */
 	size_t nrows() const { return m_nrows; }
 	size_t ncolumns() const { return m_ncolumns; }
 	bool empty() const { return m_nrows == 0 || m_ncolumns == 0; }
 	bool is_square() const { return m_nrows == m_ncolumns; }
-
 	T determinant() const;
-	void transpose() { *this = get_transposed(); }
 	T main_diagonal_elements_product() const;
 
+	/* modification */
+	void fill_with(const T& value) { *this = Matrix(m_nrows, m_ncolumns, value); }
+	template <class Func> void fill_with_values(Func value_generator) { *this = Matrix(m_nrows, m_ncolumns, value_generator); }
+	void transpose() { *this = get_transposed(); }
+	//void invert() { *this = get_inverted(); }
+	void cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max)
+		{ *this = get_cut(row_min, row_max, column_min, column_max); }
 	void swap_rows(size_t i, size_t j)
 		{ std::swap(m_data[i], m_data[j]); }
 	void swap_rows(size_t i, Matrix& other, size_t j);
 
-	Matrix<T> cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max);
-	// void permute_rows(const Permutation& p);
-
 	void dump(std::ostream& os = std::cout, int field_width = 10) const; // prints data
+
+	/* arithmetic operations */
+	Matrix& operator +=(const Matrix& other) &;
+	Matrix& operator -=(const Matrix& other) &;
+	Matrix& operator *=(const Matrix& other) &;
 
 	template <class A = promoted_value_type>
 	LUPDecomposition<A> LUP_decomposition() const;
 
 	static Matrix create_identity_matrix(size_t size)
 		{ return Matrix(size, size, [](size_t i, size_t j) { return (i == j) ? T{1} : T{}; }); }
-
-	struct DecompositionError : public std::runtime_error {
-		DecompositionError() : std::runtime_error("decomposition not exist") {}
-	};
 
 private:
 	template <class A> int LUP_decomposition_impl(Matrix<A>& C, Permutation& P) const;
@@ -106,6 +121,13 @@ bool operator ==(const Matrix<T>& fst, const Matrix<T>& snd);
 template <class T>
 bool operator !=(const Matrix<T>& fst, const Matrix<T>& snd)
 	{ return !(fst == snd); }
+
+template <class T> Matrix<T> operator +(const Matrix<T>& fst, const Matrix<T>& snd);
+template <class T> Matrix<T> operator -(const Matrix<T>& fst, const Matrix<T>& snd);
+template <class T> Matrix<T> operator *(const Matrix<T>& fst, const Matrix<T>& snd);
+template <class T> Matrix<T> operator -(const Matrix<T>& mrx)
+	{ return Matrix<T>(mrx.nrows(), mrx.ncolumns(), [&](size_t i, size_t j) { return -mrx[i][j]; }); }
+
 
 template <class T>
 class Matrix<T>::ProxyRow final {

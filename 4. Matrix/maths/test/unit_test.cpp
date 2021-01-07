@@ -104,8 +104,60 @@ TEST_CASE("cut", "[Matrix]")
 		6, 7, 8,
 		10, 11, 12
 	}};
-	CHECK(expected == m.cut(1, 2, 1, 3));
+	CHECK(expected == m.get_cut(1, 2, 1, 3));
 }
+
+TEMPLATE_TEST_CASE("operator +=, +", "[Matrix]", int, float, double)
+{
+	Maths::Matrix<int> m { 3, 3, {
+		1, 2, 3,
+		4, 5, 6,
+		7, 8, 9 }};
+	Maths::Matrix<int> expected { 3, 3, {
+		2, 4, 6,
+		8, 10, 12,
+		14, 16, 18
+	}};
+	CHECK(m + m == expected);
+	CHECK((m += m) == expected);
+}
+
+TEMPLATE_TEST_CASE("operator -=, -", "[Matrix]", int, float, double)
+{
+	Maths::Matrix<int> m { 3, 3, {
+		1, 2, 3,
+		4, 5, 6,
+		7, 8, 9 }};
+	Maths::Matrix<int> expected(3, 3);
+	CHECK(m - m == expected);
+	CHECK((m -= m) == expected);
+}
+
+TEMPLATE_TEST_CASE("operator *=, *", "[Matrix]", int, float, double)
+{
+	Maths::Matrix<int> m { 3, 3, {
+		1, 2, 3,
+		4, 5, 6,
+		7, 8, 9 }};
+	Maths::Matrix<int> expected { 3, 3, {
+		30, 36, 42,
+		66, 81, 96,
+		102, 126, 150
+	}};
+	CHECK(m * m == expected);
+	CHECK((m *= m) == expected);
+}
+
+// TEMPLATE_TEST_CASE("invert(), get_inverted()", "[Matrix]", float, double)
+// {
+// 	Maths::Matrix<int> m { 3, 3, {
+// 		1, 2, 3,
+// 		4, 5, 6,
+// 		7, 8, 10 }};
+
+// 	CHECK(m * m == expected);
+// 	CHECK((m *= m) == expected);
+// }
 
 TEMPLATE_TEST_CASE("initializer_list", "[Matrix]", int, float, double)
 {
@@ -153,7 +205,7 @@ TEST_CASE("LUP_decomposition() and determinant()", "[Matrix]")
 	}
 	SECTION ("singular matrix") {
 		Maths::Matrix<int> m(3, 3);
-		CHECK_THROWS_AS(m.LUP_decomposition(), Maths::Matrix<int>::DecompositionError);
+		CHECK_THROWS_AS(m.LUP_decomposition(), Maths::DecompositionError);
 		CHECK(m.determinant() == 0);
 	}
 }

@@ -18,33 +18,33 @@ public:
 	 * or returns index for the existing one otherwise */
 	Index insert(const Value& v)
 	{
-		if (!value_exists(v)) {
+		if (!contains_value(v)) {
 			m_idx_to_val.push_back(v);
 			return m_val_to_idx[v] = m_idx_to_val.size() - 1;	
 		}
 		return m_val_to_idx[v];
 	}
-	Index value_to_index(const Value& v)
+	Index value_to_index(const Value& v) const
 	{
-		if (!value_exists(v))
+		if (!contains_value(v))
 			throw std::out_of_range("no such value");
-		return m_val_to_idx[v];
+		return m_val_to_idx.find(v)->second;
 	}
 	Value& index_to_value(Index i)
 	{
-		if (!index_exists(i))
+		if (!contains_index(i))
 			throw std::out_of_range("no such index");
 		return m_idx_to_val[i];
 	}
 	const Value& index_to_value(Index i) const
 	{
-		if (!index_exists(i))
+		if (!contains_index(i))
 			throw std::out_of_range("no such index");
 		return m_idx_to_val[i];		
 	}
-	bool index_exists(Index i) const
+	bool contains_index(Index i) const
 		{ return i >= 0 && i < m_idx_to_val.size(); }
-	bool value_exists(const Value& v) const
+	bool contains_value(const Value& v) const
 		{ return m_val_to_idx.find(v) != m_val_to_idx.end(); }
 	size_t size() const { return m_idx_to_val.size(); }
 private:
