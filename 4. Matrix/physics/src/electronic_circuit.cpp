@@ -89,14 +89,14 @@ void ElectronicCircuit::fetch_buffer() const
 		return;
 	m_buf.potentials.clear();
 
-	/* Matrix::cat below will fail if nnodes() < 2, so treating separetely */
+	/* Matrix::cat() below will fail if nnodes() < 2, so treating these cases separetely */
 	if (nnodes() == 1)
 		m_buf.potentials.push_back(0);
 	if (nnodes() == 0 || nnodes() == 1) {
 		m_buf.is_up_to_date = true;
 		return;
 	}
-	/*  According to wikipedia solution can be found from matrix equation (some signs changed):
+	/*  According to wikipedia solution can be found from matrix equation (some signs were changed):
 	 * A*Y*transposed(A)*Phi = A*(J-Y*E)
 	 * A - incidence_matrix for all nodes except one
 	 * Y - square conductance matrix

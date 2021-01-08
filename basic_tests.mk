@@ -33,14 +33,24 @@
 
 #---- input-output tests impl. ----#
 
+#  Function, which compares output of program $(1) with benchmark file $(2)
+#  May be reset before any call to create-io-tests to set user-defined
+# diff program for that test group
+#  It could be useful if some transformations on output should be performed,
+# for example:
+# DIFFPROG=$(1) | awk ... | ... | diff - $(2) -bB --brief
+DIFFPROG=$(DIFFPROG_DEFAULT)
+
+DIFFPROG_DEFAULT=$(1) | diff - $(2) -bB --brief
+
 # $(1) - progname, $(2) - test name with .test suffix
 define run-diff-test
-$(1) < $(patsubst %.test,%.test-in,$(2)) | diff - $(patsubst %.test,%.test-out,$(2)) -bB --brief
+$(call DIFFPROG,$(1) < $(patsubst %.test,%.test-in,$(2)),$(patsubst %.test,%.test-out,$(2)))
 endef
 
 # determinant-tests: $(determinant-tests-targets)
 define _io-individual-test-template
-$(1): $(word 1,$(2))
+$(1): $(word 1,$(value 2))
 	$(call run-diff-test,$(2),$(1))
 endef
 
@@ -49,7 +59,7 @@ define create-io-tests
 $(eval _targets = $(addsuffix .test, $(basename $(wildcard $(3)/*.test-in))))
 PHONY: $(_targets)
 $(eval $(1)=$(_targets))
-$(foreach test,$(value _targets),$(eval $(call _io-individual-test-template,$(test),$(2))))
+$(foreach test,$(value _targets),$(eval $(call _io-individual-test-template,$(test),$(value 2))))
 endef
 
 #---- unit-tests impl. ----#

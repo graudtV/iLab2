@@ -8,10 +8,14 @@ $(call create-io-tests,incidence-matrix-test,bin/test/calc_currents -m,test/data
 $(call create-io-tests,voltage-srcs-matrix-test,bin/test/calc_currents -v,test/data/voltage_srcs_matrix)
 $(call create-io-tests,current-srcs-matrix-test,bin/test/calc_currents -i,test/data/current_srcs_matrix)
 $(call create-io-tests,conductance-matrix-test,bin/test/calc_currents -g,test/data/conductance_matrix)
-#$(call create-io-tests,calc-currents-test,bin/test/calc_currents,test/data/currents)
+$(call create-io-tests,calc-currents-test,bin/test/calc_currents,test/data/currents)
+
+DIFFPROG = $(1) | awk '{ printf("%d -- %d: %.f A\n", $$$$1, $$$$3, $$$$4) }' | diff - $(2)
+$(call create-io-tests,calc-currents-round-test,bin/test/calc_currents,test/data/currents/round)
 
 all: compile-essential-objs bin/test/calc_currents $(incidence-matrix-test)\
-	$(voltage-srcs-matrix-test) $(current-srcs-matrix-test) $(conductance-matrix-test) $(calc-currents-test)
+	$(voltage-srcs-matrix-test) $(current-srcs-matrix-test) $(conductance-matrix-test) $(calc-currents-test)\
+	$(calc-currents-round-test)
 
 scan/scan.h:
 	git submodule init && git submodule update
