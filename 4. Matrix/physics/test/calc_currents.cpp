@@ -81,8 +81,9 @@ try {
 			}
 		}
 
+		scan >> scn::set_checkpoint;
 		try {
-			scan >> scn::skip_spaces >> scn::end_of_text;
+			scan >> ";?" >> scn::skip_spaces >> scn::end_of_text;
 			circuit.add_component(node1, node2, Physics::make_resistor(R));
 			continue;
 		} catch (scn::scan_error& e) {}
