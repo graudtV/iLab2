@@ -72,7 +72,7 @@ public:
 	/* generating new matrices */
 	template <class U> Matrix<U> convert_to() const; // cast matrix to another type
 	Matrix<T> get_transposed() const;
-	//Matrix<T> get_inverted() const;
+	template <class A = promoted_value_type> Matrix<A> get_inverted() const;
 	Matrix<T> get_cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max) const;
 
 	/* accessing data */
@@ -91,7 +91,7 @@ public:
 	void fill_with(const T& value) { *this = Matrix(m_nrows, m_ncolumns, value); }
 	template <class Func> void fill_with_values(Func value_generator) { *this = Matrix(m_nrows, m_ncolumns, value_generator); }
 	void transpose() { *this = get_transposed(); }
-	//void invert() { *this = get_inverted(); }
+	void invert() { *this = get_inverted(); } // for integer types elements will be rounded to that integer type
 	void cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max)
 		{ *this = get_cut(row_min, row_max, column_min, column_max); }
 	void swap_rows(size_t i, size_t j)
@@ -127,7 +127,6 @@ template <class T> Matrix<T> operator -(const Matrix<T>& fst, const Matrix<T>& s
 template <class T> Matrix<T> operator *(const Matrix<T>& fst, const Matrix<T>& snd);
 template <class T> Matrix<T> operator -(const Matrix<T>& mrx)
 	{ return Matrix<T>(mrx.nrows(), mrx.ncolumns(), [&](size_t i, size_t j) { return -mrx[i][j]; }); }
-
 
 template <class T>
 class Matrix<T>::ProxyRow final {

@@ -45,7 +45,7 @@ template <class U>
 Matrix<U> Matrix<T>::convert_to() const
 {
 	return Matrix<U>(m_nrows, m_ncolumns,
-		[&](size_t i, size_t j) { return static_cast<U>(m_data[i][j]); } );
+		[&](size_t i, size_t j) { return round_to<U>(m_data[i][j]); } );
 }
 
 template <class T>
@@ -53,6 +53,35 @@ Matrix<T> Matrix<T>::get_transposed() const
 {
 	return Matrix<T>(m_ncolumns, m_nrows,
 		[this](size_t i, size_t j) { return m_data[j][i]; } );
+}
+
+template <class T>
+template <class A /* = promoted_value_type */>
+Matrix<A> Matrix<T>::get_inverted() const
+{
+	Matrix<A> C;
+	Permutation P;
+
+	if (LUP_decomposition_impl(C, P) == 0)
+		throw InvertionError();
+
+	Matrix<A> res(m_nrows, m_nrows); // m_nrows == m_ncolumns
+
+    for (size_t j = 0; j < m_nrows; ++j) {
+        for (size_t i = 0; i < m_nrows; ++i) {
+            res[i][j] = (P[i] == j) ? 1 : 0;
+            for (size_t k = 0; k < i; ++k)
+                res[i][j] -= C[i][k] * res[k][j];
+        }
+        for (size_t i = m_nrows - 1;; --i) {
+            for (size_t k = i + 1; k < m_nrows; ++k)
+                res[i][j] -= C[i][k] * res[k][j];
+            res[i][j] /= C[i][i];
+            if (i == 0)
+            	break;
+        }
+    }
+	return res;
 }
 
 /* For not square matrices returns zero */
@@ -85,14 +114,15 @@ void Matrix<T>::swap_rows(size_t i, Matrix& other, size_t j)
 	std::swap(m_data[i], other.m_data[j]);
 }
 
-/* 0 <= row_min <= row_max <= nrows() - 1
+/* Note. row_max, column_max will (!) be included in the result
+ * 0 <= row_min <= row_max <= nrows() - 1
  * 0 <= column_min <= column_max <= ncolumns() - 1 */
 template <class T>
 Matrix<T> Matrix<T>::get_cut(size_t row_min, size_t row_max,
 	size_t column_min, size_t column_max) const
 {
-	if (row_min >= row_max || row_max >= m_nrows
-		|| column_min >= column_max || column_max >= m_ncolumns)
+	if (row_min > row_max || row_max >= m_nrows
+		|| column_min > column_max || column_max >= m_ncolumns)
 		throw std::invalid_argument("Matrix::cut(): range to be cut is invalid");
 	return Matrix(row_max - row_min + 1, column_max - column_min + 1,
 		[=](size_t i, size_t j) { return m_data[row_min + i][column_min + j]; });
@@ -160,12 +190,12 @@ Matrix<T> operator *(const Matrix<T>& fst, const Matrix<T>& snd)
 {
 	if (fst.ncolumns() != snd.nrows())
 		throw IncompatibleSizeError();
-	Matrix<T> mrx(fst.nrows(), snd.ncolumns());
-	for (size_t i = 0; i < mrx.nrows(); ++i)
-		for (size_t j = 0; j < mrx.ncolumns(); ++j)
+	Matrix<T> res(fst.nrows(), snd.ncolumns());
+	for (size_t i = 0; i < res.nrows(); ++i)
+		for (size_t j = 0; j < res.ncolumns(); ++j)
 			for (size_t k = 0; k < fst.ncolumns(); ++k)
-				mrx[i][j] += fst[i][k] * snd[k][j];
-	return mrx;
+				res[i][j] += fst[i][k] * snd[k][j];
+	return res;
 }
 
 /* throws DecompostionError if decomposition doesn't exist */

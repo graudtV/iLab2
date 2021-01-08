@@ -24,7 +24,7 @@ T rand_val(size_t, size_t)
 
 TEMPLATE_TEST_CASE("identity_matrix", "[Matrix]", int, float, double)
 {
-	Maths::Matrix<TestType> m = Maths::identity_matrix<TestType>(100);
+	Maths::Matrix<TestType> m = Maths::identity_matrix<TestType>(10);
 		FOR_EACH(i, j, m) {
 			INFO("i=" << i << "; j=" << j)
 			if (i == j)
@@ -46,18 +46,12 @@ TEMPLATE_TEST_CASE("copy constructor and copy assign", "[Matrix]", int, float, d
 
 	/* check copy ctr */
 	Maths::Matrix<TestType> m2(*m1);
-	FOR_EACH(i, j, *m1) {
-		INFO("i=" << i << "; j=" << j);
-		CHECK((*m1)[i][j] == m2[i][j]);
-	}
+	CHECK(*m1 == m2);
 
 	/* check copy assign */
 	Maths::Matrix<TestType> m3(10, 20, 30);
 	m3 = m2;
-	FOR_EACH(i, j, m3) {
-		INFO("i=" << i << "; j=" << j);
-		CHECK(m3[i][j] == m2[i][j]);
-	}
+	CHECK(m3 == m2);
 }
 
 TEMPLATE_TEST_CASE("get_transposed()", "[Matrix]", int, float, double)
@@ -71,6 +65,7 @@ TEMPLATE_TEST_CASE("get_transposed()", "[Matrix]", int, float, double)
 		INFO("i=" << i << "; j=" << j);
 		CHECK(m2[i][j] == m1[j][i]);
 	}
+	CHECK(m2.get_transposed() == m1);
 }
 
 TEST_CASE("main_diagonal_elements_product", "[Matrix]")
@@ -135,11 +130,11 @@ TEMPLATE_TEST_CASE("operator -=, -", "[Matrix]", int, float, double)
 
 TEMPLATE_TEST_CASE("operator *=, *", "[Matrix]", int, float, double)
 {
-	Maths::Matrix<int> m { 3, 3, {
+	Maths::Matrix<TestType> m { 3, 3, {
 		1, 2, 3,
 		4, 5, 6,
 		7, 8, 9 }};
-	Maths::Matrix<int> expected { 3, 3, {
+	Maths::Matrix<TestType> expected { 3, 3, {
 		30, 36, 42,
 		66, 81, 96,
 		102, 126, 150
@@ -148,20 +143,24 @@ TEMPLATE_TEST_CASE("operator *=, *", "[Matrix]", int, float, double)
 	CHECK((m *= m) == expected);
 }
 
-// TEMPLATE_TEST_CASE("invert(), get_inverted()", "[Matrix]", float, double)
-// {
-// 	Maths::Matrix<int> m { 3, 3, {
-// 		1, 2, 3,
-// 		4, 5, 6,
-// 		7, 8, 10 }};
-
-// 	CHECK(m * m == expected);
-// 	CHECK((m *= m) == expected);
-// }
+TEMPLATE_TEST_CASE("invert(), get_inverted()", "[Matrix]", int, float, double)
+{
+	SECTION ("not invertible") {
+		Maths::Matrix<TestType> m(10, 20, rand_val<TestType>);
+		CHECK_THROWS_AS(m.invert(), Maths::InvertionError);		
+	}
+	SECTION ("invertible") {
+		Maths::Matrix<TestType> m(100, 100, rand_val<TestType>); // it is probably invertible
+		auto product1 = m.get_inverted() * m.template convert_to<typename Maths::Matrix<TestType>::promoted_value_type>();
+		auto product2 = m.template convert_to<typename Maths::Matrix<TestType>::promoted_value_type>() * m.get_inverted();
+		CHECK(product1.template convert_to<int>() == Maths::identity_matrix<int>(100));
+		CHECK(product2.template convert_to<int>() == Maths::identity_matrix<int>(100));
+	}
+}
 
 TEMPLATE_TEST_CASE("initializer_list", "[Matrix]", int, float, double)
 {
-	Maths::Matrix<int> m(2, 2);
+	Maths::Matrix<TestType> m(2, 2);
 	SECTION("exact amount") { m = {1, 2, 3, 4}; }
 	SECTION("extra values") { m = {1, 2, 3, 4, 5, 6, 7}; }
 
@@ -178,18 +177,6 @@ TEMPLATE_TEST_CASE("empty initializer_list", "[Matrix]", int, float, double)
 		INFO("i=" << i << "; j=" << j);
 		CHECK(m[i][j] == 0);
 	}
-}
-
-template <class T>
-std::ostream&
-operator <<(std::ostream& os, const Maths::Matrix<T>& m)
-{
-	for (int i = 0; i < m.nrows(); ++i) {
-		for (int j = 0; j < m.ncolumns(); ++j)
-			os << std::setw(10) << m[i][j] << " ";
-		os << std::endl;
-	}
-	return os;
 }
 
 TEST_CASE("LUP_decomposition() and determinant()", "[Matrix]")
