@@ -37,6 +37,9 @@ inline AffineComponent make_voltage_src(double E, double R = 0) { return {1, R, 
 inline AffineComponent make_current_src(double I) { return {0, 1, -I}; }
 inline AffineComponent make_jumper() { return {1, 0, 0}; }
 
+struct CalculationError : public std::runtime_error {
+	CalculationError() : std::runtime_error("calculation failure") {}
+};
 
 class ElectronicCircuit final {
 public:

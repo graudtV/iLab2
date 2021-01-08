@@ -15,15 +15,15 @@ double ElectronicCircuit::get_current(comp_key_t c) const
 {
 	fetch_buffer();
 	return m_comps.at(c).component.calc_current(
-		m_buf.potentials.at(m_comps[c].node1)
-		- m_buf.potentials.at(m_comps[c].node2));
+		m_buf.potentials[m_comps[c].node1]
+		- m_buf.potentials[m_comps[c].node2]);
 }
 
 double ElectronicCircuit::get_voltage(node_key_t node1, node_key_t node2) const
 {
 	fetch_buffer();
-	return m_buf.potentials.at(m_nodes.value_to_index(node1))
-		- m_buf.potentials.at(m_nodes.value_to_index(node2));
+	return m_buf.potentials[m_nodes.value_to_index(node1)]
+		- m_buf.potentials[m_nodes.value_to_index(node2)];
 }
 
 ElectronicCircuit::ComponentData
@@ -79,7 +79,7 @@ ElectronicCircuit::get_square_conductance_matrix() const
 	Maths::Matrix<double> mrx(ncomponents(), ncomponents());
 	for (size_t i = 0; i < ncomponents(); ++i)
 		if (!m_comps[i].component.is_ideal_current_src())
-			mrx[i][i] = m_comps[i].component.get_diff_resistance();
+			mrx[i][i] = m_comps[i].component.get_diff_conductance();
 	return mrx;
 }
 
@@ -88,8 +88,16 @@ void ElectronicCircuit::fetch_buffer() const
 	if (m_buf.is_up_to_date)
 		return;
 	m_buf.potentials.clear();
-	/*  According to wikipedia solution can be found from matrix equation:
-	 * A*Y*transposed(A)*Phi = A*(J+Y*E)
+
+	/* Matrix::cat below will fail if nnodes() < 2, so treating separetely */
+	if (nnodes() == 1)
+		m_buf.potentials.push_back(0);
+	if (nnodes() == 0 || nnodes() == 1) {
+		m_buf.is_up_to_date = true;
+		return;
+	}
+	/*  According to wikipedia solution can be found from matrix equation (some signs changed):
+	 * A*Y*transposed(A)*Phi = A*(J-Y*E)
 	 * A - incidence_matrix for all nodes except one
 	 * Y - square conductance matrix
 	 * Phi - result with potential for all nodes except one. For that one potential=0
@@ -99,12 +107,15 @@ void ElectronicCircuit::fetch_buffer() const
 	Maths::Matrix<double> potentials;
 	auto Y = get_square_conductance_matrix();
 	auto A = get_incidence_matrix().convert_to<double>();
+	A.cut(0, A.nrows() - 2, 0, A.ncolumns() - 1);
+
 	try {
 		potentials = (A * Y * A.get_transposed()).get_inverted()
-			* A * (get_current_srcs_matrix() + Y * get_voltage_srcs_matrix());
+			* A * (get_current_srcs_matrix() - Y * get_voltage_srcs_matrix());
 	} catch (Maths::InvertionError&) {
-		throw std::runtime_error("too hard circuit, sorry:(");
+		throw CalculationError();
 	}
+
 	assert(potentials.nrows() == nnodes() - 1);
 	assert(potentials.ncolumns() == 1);
 	for (size_t i = 0; i < potentials.nrows(); ++i)
