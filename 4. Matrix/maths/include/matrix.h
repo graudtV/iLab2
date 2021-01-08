@@ -57,7 +57,7 @@ public:
 	~Matrix() = default;
 	Matrix(const Matrix& other);
 	Matrix(Matrix&& other) noexcept : MatrixBuf<T>() { this->swap(other); }
-	Matrix& operator =(const Matrix& other) { return *this = Matrix(other); }
+	Matrix& operator =(const Matrix& other);
 	Matrix& operator =(std::initializer_list<T> init) { return *this = Matrix(m_nrows, m_ncolumns, init); } // doesn't change matrix size
 	Matrix& operator =(Matrix&& other) noexcept { this->swap(other); return *this; }
 
@@ -88,8 +88,8 @@ public:
 	T main_diagonal_elements_product() const;
 
 	/* modification */
-	void fill_with(const T& value) { *this = Matrix(m_nrows, m_ncolumns, value); }
-	template <class Func> void fill_with_values(Func value_generator) { *this = Matrix(m_nrows, m_ncolumns, value_generator); }
+	void fill_with(const T& value);
+	template <class Func> void fill_with_values(Func value_generator);
 	void transpose() { *this = get_transposed(); }
 	void invert() { *this = get_inverted(); } // for integer types elements will be rounded to that integer type
 	void cut(size_t row_min, size_t row_max, size_t column_min, size_t column_max)

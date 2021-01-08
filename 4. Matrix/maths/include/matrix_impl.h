@@ -12,11 +12,6 @@ template <class T>
 Matrix<T>::Matrix(size_t rows, size_t columns, const T& value /* = T{} */) :
 	Matrix(rows, columns, [&](size_t, size_t) { return value; } ) {}
 
-template <class T>
-Matrix<T>::Matrix(const Matrix& other) :
-	Matrix(other.m_nrows, other.m_ncolumns,
-		[&](size_t i, size_t j) { return other.m_data[i][j]; } ) {}
-
 /*  value_generator takes row and column indices (in such order)
  * and generate some value, which will be put into matrix
  *  value_generator must have defined behaviour for each row from 0 to rows-1
@@ -39,6 +34,22 @@ template <class InputIt>
 Matrix<T>::Matrix(size_t rows, size_t columns, InputIt fst, InputIt last) :
 	Matrix(rows, columns,
 		[&](size_t, size_t) { return (fst == last) ? T{} : *fst++; } ) {}
+
+template <class T>
+Matrix<T>::Matrix(const Matrix& other) :
+	Matrix(other.m_nrows, other.m_ncolumns,
+		[&](size_t i, size_t j) { return other.m_data[i][j]; } ) {}
+
+template <class T>
+Matrix<T>& Matrix<T>::operator =(const Matrix& other)
+{
+	if (m_nrows == other.m_nrows && m_ncolumns == other.m_ncolumns)
+		fill_with_values(
+			[&](size_t i, size_t j) noexcept(noexcept(T(other.m_data[0][0])))
+				{ return other.m_data[i][j]; }
+			);
+	return *this = Matrix(other);
+}
 
 template <class T>
 template <class U>
@@ -107,6 +118,31 @@ T Matrix<T>::main_diagonal_elements_product() const
 }
 
 template <class T>
+void Matrix<T>::fill_with(const T& value)
+{
+	fill_with_values(
+		[&](size_t i, size_t j) noexcept(noexcept(T(value)))
+			{ return value; }
+		);
+}
+
+template <class T>
+template <class Func>
+void Matrix<T>::fill_with_values(Func value_generator)
+{
+	/*  If values can be generated and assigned without exceptions,
+	 * where is no need to make extra copies. But, if not, the only safe
+	 * way is to make a new Matrix and then swap data */
+	if constexpr (noexcept(m_data[0][0] = value_generator(0, 0))) {
+		for (size_t i = 0; i < m_nrows; ++i)
+			for (size_t j = 0; j < m_ncolumns; ++j)
+				m_data[i][j] = value_generator(i, j);
+	} else {
+		*this = Matrix(m_nrows, m_ncolumns, value_generator);		
+	}
+}
+
+template <class T>
 void Matrix<T>::swap_rows(size_t i, Matrix& other, size_t j)
 {
 	if (m_ncolumns != other.m_ncolumns)
@@ -153,14 +189,18 @@ void Matrix<T>::dump(std::ostream& os /* = std::cout */, int field_width /* = 10
 template <class T>
 Matrix<T>& Matrix<T>::operator +=(const Matrix<T>& other) &
 {
-	fill_with_values( [&](size_t i, size_t j) { return m_data[i][j] + other.m_data[i][j]; } );
+	fill_with_values(
+		[&](size_t i, size_t j) noexcept(noexcept(T(m_data[0][0] + other.m_data[0][0])))
+			{ return m_data[i][j] + other.m_data[i][j]; } );
 	return *this;
 }
 
 template <class T>
 Matrix<T>& Matrix<T>::operator -=(const Matrix<T>& other) &
 {
-	fill_with_values( [&](size_t i, size_t j) { return m_data[i][j] - other.m_data[i][j]; } );
+	fill_with_values(
+		[&](size_t i, size_t j) noexcept(noexcept(T(m_data[0][0] - other.m_data[0][0])))
+	 		{ return m_data[i][j] - other.m_data[i][j]; } );
 	return *this;
 }
 
