@@ -13,7 +13,7 @@ $(call create-io-tests,calc-currents-test,bin/test/calc_currents,test/data/curre
 DIFFPROG = $(1) | awk '{ printf("%d -- %d: %.f A\n", $$$$1, $$$$3, $$$$4) }' | diff - $(2)
 $(call create-io-tests,calc-currents-round-test,bin/test/calc_currents,test/data/currents/round)
 
-all: compile-essential-objs bin/test/calc_currents $(incidence-matrix-test)\
+all: scan/scan.h compile-essential-objs bin/test/calc_currents $(incidence-matrix-test)\
 	$(voltage-srcs-matrix-test) $(current-srcs-matrix-test) $(conductance-matrix-test) $(calc-currents-test)\
 	$(calc-currents-round-test)
 
