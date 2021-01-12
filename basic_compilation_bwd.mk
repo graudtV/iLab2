@@ -6,6 +6,10 @@
 # author: https://github.com/graudtV
 #---------------------------------------------------------
 
+ifndef BASIC_COMPILATION_FWD_INCLUDED_
+$(error please include file basic_compilatio_fwd.mk in the begging of your makefile)
+endif
+
 #  These variables can be set before including this makefile to
 # maintain compilation
 ESSENTIAL_HEADERS+=

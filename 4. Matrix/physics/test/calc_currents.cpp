@@ -1,58 +1,44 @@
 #include <iostream>
 #include <cstdlib>
-#include <unistd.h>
 #include <iomanip>
+#include <boost/program_options.hpp>
 #include "electronic_circuit.h"
 #include "scan.h"
 
-void usage_error(const char *msg = "")
-{
-	fprintf(stderr, "usage: \n"
-		"Input format:\n"
-		"\tnode1  -- node2, R1\n"
-		"\tnode25 -- node44, R25\n"
-		"\tnode39 -- node25, R15; 10V\n"
-		"\t...\n"
-		"Options:\n"
-		"\tn\t--\tprint number of nodes and components\n"
-		"\tm\t--\tdump incidence matrix\n"
-		"\tv\t--\tdump voltage sources matrix\n"
-		"\ti\t--\tdump current sources matrix\n"
-		"\tg\t--\tdump conductances matrix\n"
-		"\tr\t--\treverse all voltages signs (default voltage for \"1--2,...\" is Phi1 - Phi2)\n"
-		"\tI\t--\tprint currents in components (default behaviour, if nothing specified)\n");
-	exit(EXIT_FAILURE);
-}
+namespace po = boost::program_options;
+po::options_description opt_desc("Options");
 
 int main(int argc, char *argv[])
 try {
 	std::ios::sync_with_stdio(true);
 
-	int opt;
-	int opt_dump_nodes_and_components = 0;
-	int opt_dump_incidence_matrix = 0;
-	int opt_dump_voltage_srcs_matrix = 0;
-	int opt_dump_current_srcs_matrix = 0;
-	int opt_dump_conductance_matrix = 0;
-	int opt_voltage_sign = 1; // 1 or -1
-	int opt_dump_currents = 0;
+	bool opt_dump_nodes_and_components = 0;
+	bool opt_dump_incidence_matrix = 0;
+	bool opt_dump_voltage_srcs_matrix = 0;
+	bool opt_dump_current_srcs_matrix = 0;
+	bool opt_dump_conductance_matrix = 0;
+	bool opt_reverse_voltage_sign = 0;
+	bool opt_dump_currents = 0;
 
-	while ((opt = getopt(argc, argv, "nmvigrI")) != -1)
-		switch (opt) {
-		case 'n': opt_dump_nodes_and_components = 1; break;
-		case 'm': opt_dump_incidence_matrix = 1; break;
-		case 'v': opt_dump_voltage_srcs_matrix = 1; break;
-		case 'i': opt_dump_current_srcs_matrix = 1; break;
-		case 'g': opt_dump_conductance_matrix = 1; break;
-		case 'r': opt_voltage_sign = -1; break;
-		case 'I': opt_dump_currents = 1; break;
-		default: usage_error();
-		}
+	opt_desc.add_options()
+		(",n", po::bool_switch(&opt_dump_nodes_and_components), "print number of nodes and components")
+		(",m", po::bool_switch(&opt_dump_incidence_matrix), "dump incidence matrix")
+		(",v", po::bool_switch(&opt_dump_voltage_srcs_matrix), "dump voltage sources matrix")
+		(",i", po::bool_switch(&opt_dump_current_srcs_matrix), "dump current sources matrix")
+		(",g", po::bool_switch(&opt_dump_conductance_matrix), "dump conductances matrix")
+		(",r", po::bool_switch(&opt_reverse_voltage_sign), "reverse all voltages signs (default voltage for \"1--2,...\" is Phi1 - Phi2)\n")
+		(",I", po::bool_switch(&opt_dump_currents), "print currents in components (default behaviour, if nothing specified)");
+
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, opt_desc), vm);
+	po::notify(vm);
+
 	if (!opt_dump_nodes_and_components && !opt_dump_incidence_matrix
 		&& !opt_dump_voltage_srcs_matrix && !opt_dump_current_srcs_matrix
 		&& !opt_dump_conductance_matrix)
 		opt_dump_currents = 1;
 
+	int opt_voltage_sign = (opt_reverse_voltage_sign) ? -1 : 1;
 	Physics::ElectronicCircuit circuit;
 
 	while (std::cin) {
@@ -73,7 +59,6 @@ try {
 			static bool first_time = true;
 			R = 0.000001;
 			if (first_time) {
-				double R_substitution = 1;
 				std::cerr << "warning: Resistors with R = 0 and ideal voltage sources are not supported in current mode."
 					" Assuming R = " << R << " Ohm" << std::endl
 					<< "note. This warning is printed only once, all components with R = 0 will be substituted silently" << std::endl;
@@ -81,7 +66,7 @@ try {
 			}
 		}
 
-		scan >> scn::set_checkpoint;
+		scan >> scn::skip_spaces >> scn::set_checkpoint;
 		try {
 			scan >> ";?" >> scn::skip_spaces >> scn::end_of_text;
 			circuit.add_component(node1, node2, Physics::make_resistor(R));
@@ -91,7 +76,7 @@ try {
 			>> "V" >> scn::skip_spaces >> scn::end_of_text;
 
 		circuit.add_component(node1, node2,
-			Physics::make_voltage_src(E * opt_voltage_sign, R));
+			Physics::make_voltage_src(- E * opt_voltage_sign, R));
 	}
 
 	if (opt_dump_nodes_and_components) {
@@ -117,8 +102,21 @@ try {
 	}
 
 	return 0;
+} catch (po::error& e) {
+	std::cerr << e.what() << std::endl
+		<<
+		"Usage: \n"
+		"Input format:\n"
+		"\tnode1  -- node2, R1\n"
+		"\tnode25 -- node44, R25\n"
+		"\tnode39 -- node25, R15; 10V\n"
+		"\t...\n"
+		<< opt_desc;
+	return EXIT_FAILURE;
 } catch (scn::scan_error& e) {
 	std::cerr << "error while parsing input data: " << e.what() << std::endl;
+	return EXIT_FAILURE;
 } catch (Physics::CalculationError&) {
 	std::cerr << "calculation failed: too hard, circuit" << std::endl;
+	return EXIT_FAILURE;
 }
