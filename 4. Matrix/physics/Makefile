@@ -21,6 +21,12 @@ all: scan/scan.h compile-essential-objs bin/test/calc_currents $(incidence-matri
 scan/scan.h:
 	git submodule init && git submodule update
 
-$(call add-extra-linkage-flags,bin/test/calc_currents,-lboost_program_options-mt)
+ifeq ($(shell uname),Darwin)
+BOOST_PROGRAM_OPTIONS_FLAG=-lboost_program_options-mt
+else
+BOOST_PROGRAM_OPTIONS_FLAG=-lboost_program_options
+endif
+
+$(call add-extra-linkage-flags,bin/test/calc_currents,$(BOOST_PROGRAM_OPTIONS_FLAG))
 
 include ../../basic_compilation_bwd.mk
