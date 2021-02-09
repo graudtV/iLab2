@@ -179,9 +179,12 @@ bool operator ==(const Matrix<T>& fst, const Matrix<T>& snd)
 template <class T>
 void Matrix<T>::dump(std::ostream& os /* = std::cout */, int field_width /* = 10 */) const
 {
+	os << std::left;
 	for (size_t i = 0; i < m_nrows; ++i) {
-		for (size_t j = 0; j < m_ncolumns; ++j)
+		for (size_t j = 0; j < m_ncolumns - 1; ++j)
 			os << std::setw(field_width) << m_data[i][j] << " ";
+		if (m_ncolumns > 0)
+			os << m_data[i][m_ncolumns - 1];
 		os << std::endl;
 	}
 }

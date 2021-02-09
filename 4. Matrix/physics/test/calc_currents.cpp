@@ -84,7 +84,6 @@ try {
 		printf("components: %zu\n", circuit.ncomponents());
 	}
 
-	std::cout << std::left;
 	if (opt_dump_incidence_matrix)
 		circuit.get_circuit_graph().get_incidence_matrix().dump(std::cout, 2);
 	if (opt_dump_voltage_srcs_matrix)
