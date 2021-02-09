@@ -41,13 +41,48 @@ struct CalculationError : public std::runtime_error {
 	CalculationError() : std::runtime_error("calculation failure") {}
 };
 
+/* Representation of circuit as a graph */
+class CircuitGraph {
+public:
+	using node_idx_t = size_t; /* indices must be successive  */
+	using comp_idx_t = size_t;
+
+	struct GraphEdge {
+		node_idx_t node1, node2;
+		AffineComponent component;
+
+		GraphEdge(node_idx_t n1, node_idx_t n2, AffineComponent c) :
+			node1(n1), node2(n2), component(c) {}
+	};
+
+	comp_idx_t add_edge(node_idx_t node1, node_idx_t node2, AffineComponent c);
+	GraphEdge get_edge(comp_idx_t c) const { return m_comps[c]; }
+	GraphEdge get_edge_s(comp_idx_t c) const { return m_comps.at(c); }
+
+	size_t nnodes() const { return m_adjacent_nodes.size(); }
+	size_t ncomponents() const { return m_comps.size(); }
+	const std::vector<node_idx_t> adjacent_nodes(node_idx_t node) const { return m_adjacent_nodes.at(node); }
+
+	/* building different describing data structures */
+	Maths::Matrix<int> get_incidence_matrix() const;
+	Maths::Matrix<double> get_voltage_srcs_matrix() const;
+	Maths::Matrix<double> get_current_srcs_matrix() const;
+	Maths::Matrix<double> get_square_conductance_matrix() const;
+
+protected:
+	std::vector<GraphEdge> m_comps;
+	std::vector<std::vector<node_idx_t>> m_adjacent_nodes;
+};
+
+std::vector<CircuitGraph::node_idx_t> connected_components(const CircuitGraph& graph);
+
+/* Implements algorithms + provide more convenient key access to nodes */
 class ElectronicCircuit final {
 public:
 	using node_key_t = size_t; // unique number, choosen by user, to work with node in particular circuit
 	using comp_key_t = size_t; // unique number of component in particular circuit. Returned by ElectronicCircuit::add_component
 	
 	using NodeIndexator = other::Indexator<node_key_t, size_t>;
-	using real_node_idx_t = NodeIndexator::index_type; // successive index of node for implementation purposes
 	
 	struct ComponentData {
 		node_key_t node1, node2;
@@ -63,39 +98,24 @@ public:
 	comp_key_t add_component(node_key_t node1, node_key_t node2, AffineComponent c);
 
 	double get_current(comp_key_t c) const;
-	double get_voltage(node_key_t node1, node_key_t node2) const; // phi1 - phi2
+	double get_voltage(node_key_t node1, node_key_t node2) const; // phi1 - phi2. Voltage between different connected components is undefined
 	
 	ComponentData get_component_data(comp_key_t c) const;
-	const NodeIndexator& get_indexator() const { return m_nodes; }
+	const NodeIndexator& get_indexator() const { return m_indexator; }
+	const CircuitGraph& get_circuit_graph() const { return m_graph; }
 
-	size_t nnodes() const { return m_nodes.size(); }
-	size_t ncomponents() const { return m_comps.size(); }
-
-	Maths::Matrix<int> get_incidence_matrix() const;
-	Maths::Matrix<double> get_voltage_srcs_matrix() const;
-	Maths::Matrix<double> get_current_srcs_matrix() const;
-	Maths::Matrix<double> get_square_conductance_matrix() const;
+	size_t nnodes() const { return m_graph.nnodes(); }
+	size_t ncomponents() const { return m_graph.ncomponents(); }
 
 private:
-	struct HiddenComponentEntry;
-
-	std::vector<HiddenComponentEntry> m_comps;
-	NodeIndexator m_nodes;
+	CircuitGraph m_graph;
+	NodeIndexator m_indexator;
 	mutable struct {
 		std::vector<double> potentials;
 		bool is_up_to_date = false;
 	} m_buf;
 
 	void fetch_buffer() const;
-};
-
-/* similar to ComponentData, but holds indices of nodes instead of keys */
-struct ElectronicCircuit::HiddenComponentEntry {
-	real_node_idx_t node1, node2;
-	AffineComponent component;
-
-	HiddenComponentEntry(real_node_idx_t n1, real_node_idx_t n2, AffineComponent c) :
-		node1(n1), node2(n2), component(c) {}
 };
 
 } // Physics namespace end

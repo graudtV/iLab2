@@ -86,13 +86,13 @@ try {
 
 	std::cout << std::left;
 	if (opt_dump_incidence_matrix)
-		circuit.get_incidence_matrix().dump(std::cout, 2);
+		circuit.get_circuit_graph().get_incidence_matrix().dump(std::cout, 2);
 	if (opt_dump_voltage_srcs_matrix)
-		circuit.get_voltage_srcs_matrix().dump(std::cout, 2);
+		circuit.get_circuit_graph().get_voltage_srcs_matrix().dump(std::cout, 2);
 	if (opt_dump_current_srcs_matrix)
-		circuit.get_current_srcs_matrix().dump(std::cout, 2);
+		circuit.get_circuit_graph().get_current_srcs_matrix().dump(std::cout, 2);
 	if (opt_dump_conductance_matrix)
-		circuit.get_square_conductance_matrix().dump(std::cout, 2);
+		circuit.get_circuit_graph().get_square_conductance_matrix().dump(std::cout, 2);
 	if (opt_dump_currents) {
 		for (int comp_idx = 0; comp_idx != circuit.ncomponents(); ++comp_idx) {
 			auto comp_data = circuit.get_component_data(comp_idx);
