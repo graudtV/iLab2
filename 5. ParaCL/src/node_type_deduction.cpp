@@ -47,12 +47,23 @@ void Op::deduce_implicit_types(bool implicit_decls_allowed)
 		if (m_lhs->type() != NodeType::eDeclarationProxy) { // lhs is some complex expression
 			m_lhs->deduce_implicit_types(false);
 			m_rhs->deduce_implicit_types(false);
-		} else { // deducing type of identifier on lhs
+		} else {
 			auto decl = cast<DeclarationView>(cast<DeclarationProxyView>(lhs())->get());
-			
-			rhs()->deduce_implicit_types(implicit_decls_allowed);
-			decl->set_type_expr(cast<IExprView>(rhs())->type_expr());
-			// std::cerr << "deduced: '" << decl->name() << "': " << cast<ITypeExprView>(decl->type_expr())->to_string() << std::endl;
+			if (decl->type_expr()) { // lhs was already declared
+				/*  Mixing of declared and undeclared variables should not be allowed.
+				 * Treating this case just like other non-assign Ops */
+				rhs()->deduce_implicit_types(false); 
+			} else if (!implicit_decls_allowed) {
+				rhs()->deduce_implicit_types(implicit_decls_allowed);
+				std::cerr << "error: '" << decl->name() << "' is not declared in this scope"
+					" and its type cannot be implicitly deduced, because one of previous values"
+					" in assignment was declared before this statement" << std::endl;
+				++g_number_of_deduction_errors;
+			} else { // deducing type of identifier on lhs
+				rhs()->deduce_implicit_types(implicit_decls_allowed);
+				decl->set_type_expr(cast<IExprView>(rhs())->type_expr());
+				// std::cerr << "deduced: '" << decl->name() << "': " << cast<ITypeExprView>(decl->type_expr())->to_string() << std::endl;			
+			}
 		}
 	} else {
 		if (m_lhs)
